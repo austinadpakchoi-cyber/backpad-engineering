@@ -1,0 +1,22 @@
+--- app/src/bp_touch_policy.c
++++ app/src/bp_touch_policy.c
+@@ -692,7 +692,6 @@
+             if (iy < 0) iy = 0;
+             if (iy > BP_COORD_MAX) iy = BP_COORD_MAX;
+             bool was_confirmed = state->intent[k].confirmed;
+-            bool was_active = state->intent[k].active;
+             intent_observe(state, k, ix, iy, g->strength, g->area, time_ms, false);
+             intent_seen = true;
+             /* A one-time light-pressure step is allowed after it stabilises;
+@@ -702,10 +701,7 @@
+             for (unsigned i = 0; i < evidence->n; i++)
+                 if (time_ms - evidence->p[i].ms <= 30u && evidence->p[i].strength > recent_peak)
+                     recent_peak = evidence->p[i].strength;
+-            /* Lifetime confirmation is not perpetual permission: a stopped
+-             * finger's final centroid drift must not resurrect movement.
+-             * Continue an active slide, or require the fresh strict fit. */
+-            bool valid_slide = evidence->active && ((was_confirmed && was_active) || evidence->pressure_safe);
++            bool valid_slide = evidence->active && (was_confirmed || evidence->pressure_safe);
+             if (!valid_slide && (uint32_t)g->strength * 100u < (uint32_t)recent_peak * 90u) {
+                 evidence->active = false; evidence->confirmed = was_confirmed; evidence->good_ms = 0;
+             }

@@ -1,0 +1,45 @@
+--- app/src/bp_touch_policy.c
++++ app/src/bp_touch_policy.c
+@@ -115,7 +115,7 @@
+                            uint16_t strength, uint16_t area, uint64_t ms, bool fresh) {
+     bp_touch_intent *m = &state->intent[k];
+     if (fresh) memset(m, 0, sizeof(*m));
+-    m->active = false; m->pressure_safe = false;
++    m->active = false;
+     if (!BP_TOUCH_MICRO_INTENT || (ms - state->start_ms[k] < 20u && !state->resume_hint[k])) return;
+     if (m->n && (ms <= m->p[m->n - 1u].ms || ms - m->p[m->n - 1u].ms > 15u)) { m->n = 0; m->good_ms = 0; }
+     /* Landing still needs the original long-stroke evidence. Once this single
+@@ -184,12 +184,6 @@
+         bool coherent = explained >= 0.85f * total ||
+                         (m->confirmed && total - explained <= (float)m->n * 0.035f * 0.035f);
+         fit = travel2 >= travel_mm * travel_mm && coherent;
+-        /* A frozen new contact must distinguish a coherent light slide from
+-         * a press/release centroid tail. This is a fresh fit over >=40ms,
+-         * >=95% explained variance and <=20% strength range; an old cached
+-         * fit cannot acquire this permission after pressure has fallen. */
+-        m->pressure_safe = fit && explained >= 0.95f * total &&
+-                           (uint32_t)lo * 100u >= (uint32_t)hi * 80u;
+         if (fit) { m->good_ms = ms; m->good_x = m->p[m->n - 1u].x; m->good_y = m->p[m->n - 1u].y; }
+     }
+     if (!fit && m->good_ms) {
+@@ -692,7 +686,6 @@
+             if (iy < 0) iy = 0;
+             if (iy > BP_COORD_MAX) iy = BP_COORD_MAX;
+             bool was_confirmed = state->intent[k].confirmed;
+-            bool was_active = state->intent[k].active;
+             intent_observe(state, k, ix, iy, g->strength, g->area, time_ms, false);
+             intent_seen = true;
+             /* A one-time light-pressure step is allowed after it stabilises;
+@@ -702,11 +695,7 @@
+             for (unsigned i = 0; i < evidence->n; i++)
+                 if (time_ms - evidence->p[i].ms <= 30u && evidence->p[i].strength > recent_peak)
+                     recent_peak = evidence->p[i].strength;
+-            /* Lifetime confirmation is not perpetual permission: a stopped
+-             * finger's final centroid drift must not resurrect movement.
+-             * Continue an active slide, or require the fresh strict fit. */
+-            bool valid_slide = evidence->active && ((was_confirmed && was_active) || evidence->pressure_safe);
+-            if (!valid_slide && (uint32_t)g->strength * 100u < (uint32_t)recent_peak * 90u) {
++            if ((uint32_t)g->strength * 100u < (uint32_t)recent_peak * 90u) {
+                 evidence->active = false; evidence->confirmed = was_confirmed; evidence->good_ms = 0;
+             }
+             if (state->intent[k].active) {

@@ -1,0 +1,16 @@
+.build/
+build/
+__pycache__/
+*.pyc
+*.obj
+*.exe
+*.elf
+*.hex
+*.map
+*.log
+.env
+.env.*
+sensor9151/vendor/
+firmware/sensor9151/vendor/
+firmware/sensor9151/src/bp_iqs9151_settings.c
+firmware/app/include/build_id.h

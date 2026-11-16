@@ -1,0 +1,32 @@
+{
+  "v15": {
+    "historical_source_id": "c6ade6a5719a84d35404aa891f3304b9113fd15a485e5ca3bed5b20884fe6f2f",
+    "changes": [
+      {
+        "file": "app/src/bp_touch_policy.c",
+        "patch": "samples/variants/v15-bp_touch_policy.c.patch",
+        "normalized_sha256": "dc087180fb2f1340b50472c22f05eb1f82a83c4fe702d4362fe3d589fe910517"
+      },
+      {
+        "file": "app/include/bp_touch_policy.h",
+        "patch": "samples/variants/v15-bp_touch_policy.h.patch",
+        "normalized_sha256": "2fc337a201916d86d8b6e27a77d0b20157f65112c6e21df7c37ffa00b9546769"
+      }
+    ]
+  },
+  "r1": {
+    "historical_source_id": "e0fe0b00102252cb78f125d701d5a73058ec96cd6bf862cb3e9d470a7edab43b",
+    "changes": [
+      {
+        "file": "app/src/bp_touch_policy.c",
+        "patch": "samples/variants/r1-bp_touch_policy.c.patch",
+        "normalized_sha256": "326c7f998485972fb4d95156b7f3f589ee03c804e324978bb759a349947262b9"
+      },
+      {
+        "file": "app/include/bp_touch_policy.h",
+        "patch": null,
+        "normalized_sha256": "659ab1e931289357e9436ed3e6b9614a44a0265e4c7065697c292dbc13eb608b"
+      }
+    ]
+  }
+}

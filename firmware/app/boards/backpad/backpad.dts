@@ -1,0 +1,33 @@
+/dts-v1/;
+#include <nordic/nrf52840_qiaa.dtsi>
+#include <zephyr/dt-bindings/gpio/gpio.h>
+#include <zephyr/dt-bindings/pinctrl/nrf-pinctrl.h>
+/ {
+  model = "BackPad nRF52840 QIAA 2026-10";
+  compatible = "backpad,nrf52840";
+  chosen { zephyr,sram = &sram0; zephyr,flash = &flash0; zephyr,code-partition = &app_partition; };
+  aliases { led0 = &led0; sw0 = &sw0; backpad-touch = &i2c0; };
+  leds { compatible = "gpio-leds"; led0: led0 { gpios = <&gpio0 26 GPIO_ACTIVE_LOW>; label = "BackPad LED1"; }; };
+  buttons { compatible = "gpio-keys"; sw0: sw0 { gpios = <&gpio0 2 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>; label = "BackPad SW1"; }; };
+  zephyr,user { rdy-gpios = <&gpio0 3 GPIO_ACTIVE_LOW>; }; /* IQS9151 RDY: open-drain, active low, 4.7k pull-up on the touchpad */
+};
+&pinctrl {
+  i2c0_default: i2c0_default { group1 { psels = <NRF_PSEL(TWIM_SDA, 0, 4)>, <NRF_PSEL(TWIM_SCL, 0, 5)>; bias-pull-up; }; };
+  i2c0_sleep: i2c0_sleep { group1 { psels = <NRF_PSEL(TWIM_SDA, 0, 4)>, <NRF_PSEL(TWIM_SCL, 0, 5)>; low-power-enable; }; };
+};
+&gpio0 { status = "okay"; };
+&gpio1 { status = "okay"; };
+&gpiote { status = "okay"; };
+&i2c0 { compatible = "nordic,nrf-twim"; status = "okay"; clock-frequency = <400000>; /* one 72-byte frame per 5 ms window needs fast mode */ pinctrl-0 = <&i2c0_default>; pinctrl-1 = <&i2c0_sleep>; pinctrl-names = "default", "sleep"; };
+/* Base SoC defaults disable UART/USB/SPI/QSPI/NFC/ADC/PWM and use LDO.
+ * Deliberately no uicr properties and no reset/NRST pin drive. NVS stores bonds only. */
+
+&flash0 {
+    partitions {
+        compatible = "fixed-partitions";
+        #address-cells = <1>; #size-cells = <1>;
+        app_partition: partition@0 { label = "app"; reg = <0x0 0xf8000>; };
+        storage_partition: partition@f8000 { label = "storage"; reg = <0xf8000 0x8000>; };
+    };
+};
+

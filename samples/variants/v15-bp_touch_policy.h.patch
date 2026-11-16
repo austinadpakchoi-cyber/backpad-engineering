@@ -1,0 +1,10 @@
+--- app/include/bp_touch_policy.h
++++ app/include/bp_touch_policy.h
+@@ -197,7 +197,6 @@
+     uint64_t good_ms;
+     float good_x, good_y;
+     bool confirmed, active;
+-    bool pressure_safe; /* current strict fit, not a cached landing tail */
+ } bp_touch_intent;
+ /* Independent of held/filter output: a frozen centroid cannot prove that it is
+  * moving. This bounded raw trajectory only vetoes lift-freezing; it never

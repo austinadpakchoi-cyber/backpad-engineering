@@ -1,0 +1,243 @@
+{
+  "snapshot": "v0.20.16-pressure-continuity-r2",
+  "historical_full_source_id": "1ef290e5f908b07023b844b98ee0786ad732f1902652f1a56c84a9517289de71",
+  "archive_ancestor_commit": "f0c3d9a325a7a874103992b0f170a91c7d0ad575",
+  "archive_ancestor_note": "Private development archive; R2 is a later local candidate, not this commit.",
+  "public_scope": "project source subset, external vendor settings, native replay and selected sanitized input",
+  "core_changes": "none; CMake and harness entry points adapted for portability",
+  "history": "No development Git history imported; current export is not a historical R2 commit.",
+  "files": [
+    {
+      "file": "firmware/app/boards/backpad/backpad.dts",
+      "source_relative": "app/boards/backpad/backpad.dts",
+      "source_sha256": "ca176004cf218ca27a48c2aa07383b8a3333182e8b737376a69826105f472928",
+      "export_sha256": "ca176004cf218ca27a48c2aa07383b8a3333182e8b737376a69826105f472928",
+      "change": "byte-identical",
+      "normalized_export_sha256": "ca176004cf218ca27a48c2aa07383b8a3333182e8b737376a69826105f472928"
+    },
+    {
+      "file": "firmware/app/boards/backpad/backpad_defconfig",
+      "source_relative": "app/boards/backpad/backpad_defconfig",
+      "source_sha256": "287be89a4680b5fdc858ada058b8b5f3659f9f298b26686e2d98a4a2d9d0630a",
+      "export_sha256": "287be89a4680b5fdc858ada058b8b5f3659f9f298b26686e2d98a4a2d9d0630a",
+      "change": "byte-identical",
+      "normalized_export_sha256": "3f0ca01a97091942455258e581845430ca802936c0a5745d8c2997307d5e4367"
+    },
+    {
+      "file": "firmware/app/boards/backpad/board.yml",
+      "source_relative": "app/boards/backpad/board.yml",
+      "source_sha256": "a3cf095877dfbdb9eab77f63a49cb558da2e04acddfb50fc006bf60b4f781dd0",
+      "export_sha256": "a3cf095877dfbdb9eab77f63a49cb558da2e04acddfb50fc006bf60b4f781dd0",
+      "change": "byte-identical",
+      "normalized_export_sha256": "a3cf095877dfbdb9eab77f63a49cb558da2e04acddfb50fc006bf60b4f781dd0"
+    },
+    {
+      "file": "firmware/app/boards/backpad/Kconfig.backpad",
+      "source_relative": "app/boards/backpad/Kconfig.backpad",
+      "source_sha256": "6a36f7be1404a11c2839a47cd30249a022f86c85bad51544c39b38656f5c2985",
+      "export_sha256": "6a36f7be1404a11c2839a47cd30249a022f86c85bad51544c39b38656f5c2985",
+      "change": "byte-identical",
+      "normalized_export_sha256": "84feb294431eaa7f553a1e296e82f0f75aae611fac8be333413601b1c02c14c6"
+    },
+    {
+      "file": "firmware/app/CMakeLists.txt",
+      "source_relative": "app/CMakeLists.txt",
+      "source_sha256": "e1b4065f6b8c62f3dfd29d54cb724763c200acc11f4494acea9b56abbc9fc863",
+      "export_sha256": "eb241890d1a292e1ce13dcfc24bae3da8b9670e4360dd38aa125879ec2a77be3",
+      "change": "external settings and generated build ID paths",
+      "normalized_export_sha256": "eb241890d1a292e1ce13dcfc24bae3da8b9670e4360dd38aa125879ec2a77be3"
+    },
+    {
+      "file": "firmware/app/include/bp_bond_button.h",
+      "source_relative": "app/include/bp_bond_button.h",
+      "source_sha256": "c75409220480259592e264b6425d93ca3e6258e356eb44f0399fcde539977b45",
+      "export_sha256": "c75409220480259592e264b6425d93ca3e6258e356eb44f0399fcde539977b45",
+      "change": "byte-identical",
+      "normalized_export_sha256": "c75409220480259592e264b6425d93ca3e6258e356eb44f0399fcde539977b45"
+    },
+    {
+      "file": "firmware/app/include/bp_experiment_flags.h",
+      "source_relative": "app/include/bp_experiment_flags.h",
+      "source_sha256": "97f13428f7123d4be6f02a96d4ecd3f49f8eb96210c3a2a36cddc78678ecd947",
+      "export_sha256": "97f13428f7123d4be6f02a96d4ecd3f49f8eb96210c3a2a36cddc78678ecd947",
+      "change": "byte-identical",
+      "normalized_export_sha256": "97f13428f7123d4be6f02a96d4ecd3f49f8eb96210c3a2a36cddc78678ecd947"
+    },
+    {
+      "file": "firmware/app/include/bp_sensor_service.h",
+      "source_relative": "app/include/bp_sensor_service.h",
+      "source_sha256": "4ebc12a40bc83601919defb9819462143a658859371f3809ea64091e1e318f39",
+      "export_sha256": "4ebc12a40bc83601919defb9819462143a658859371f3809ea64091e1e318f39",
+      "change": "byte-identical",
+      "normalized_export_sha256": "4ebc12a40bc83601919defb9819462143a658859371f3809ea64091e1e318f39"
+    },
+    {
+      "file": "firmware/app/include/bp_status.h",
+      "source_relative": "app/include/bp_status.h",
+      "source_sha256": "85e72759385c85b04d5e6e66850296ab04263113fe2f12045ec0095a7085add5",
+      "export_sha256": "85e72759385c85b04d5e6e66850296ab04263113fe2f12045ec0095a7085add5",
+      "change": "byte-identical",
+      "normalized_export_sha256": "85e72759385c85b04d5e6e66850296ab04263113fe2f12045ec0095a7085add5"
+    },
+    {
+      "file": "firmware/app/include/bp_touch_policy.h",
+      "source_relative": "app/include/bp_touch_policy.h",
+      "source_sha256": "a8398d0a8c8c574c6f830faa04bc377619268c1239e529a4825d1a5813a48e69",
+      "export_sha256": "a8398d0a8c8c574c6f830faa04bc377619268c1239e529a4825d1a5813a48e69",
+      "change": "byte-identical",
+      "normalized_export_sha256": "659ab1e931289357e9436ed3e6b9614a44a0265e4c7065697c292dbc13eb608b"
+    },
+    {
+      "file": "firmware/app/include/bp_trace_codec.h",
+      "source_relative": "app/include/bp_trace_codec.h",
+      "source_sha256": "b570ea6bec1fc8468e8ed9d2e024c1cebcddd9fa493b18b23ee4f6044feb73c9",
+      "export_sha256": "b570ea6bec1fc8468e8ed9d2e024c1cebcddd9fa493b18b23ee4f6044feb73c9",
+      "change": "byte-identical",
+      "normalized_export_sha256": "b570ea6bec1fc8468e8ed9d2e024c1cebcddd9fa493b18b23ee4f6044feb73c9"
+    },
+    {
+      "file": "firmware/app/include/bp_tune.h",
+      "source_relative": "app/include/bp_tune.h",
+      "source_sha256": "1c86ed5f436f3c0e337d2c1062780c8201cc58b204d20271aa2f74582296eaeb",
+      "export_sha256": "1c86ed5f436f3c0e337d2c1062780c8201cc58b204d20271aa2f74582296eaeb",
+      "change": "byte-identical",
+      "normalized_export_sha256": "4e39bfd7529b2887567b47552ab4f052332074a101665b6d7632e6a8193836f0"
+    },
+    {
+      "file": "firmware/app/include/bp_tx_timeout.h",
+      "source_relative": "app/include/bp_tx_timeout.h",
+      "source_sha256": "972783f88e5c6b0f58e19502b1d0cc802a837065b870e339f606cd50cd634818",
+      "export_sha256": "972783f88e5c6b0f58e19502b1d0cc802a837065b870e339f606cd50cd634818",
+      "change": "byte-identical",
+      "normalized_export_sha256": "972783f88e5c6b0f58e19502b1d0cc802a837065b870e339f606cd50cd634818"
+    },
+    {
+      "file": "firmware/app/prj.conf",
+      "source_relative": "app/prj.conf",
+      "source_sha256": "d92caf43bd503e3cae0d6cd27491f7091016fb6387e6f95884b298653aa82ca7",
+      "export_sha256": "d92caf43bd503e3cae0d6cd27491f7091016fb6387e6f95884b298653aa82ca7",
+      "change": "byte-identical",
+      "normalized_export_sha256": "d92caf43bd503e3cae0d6cd27491f7091016fb6387e6f95884b298653aa82ca7"
+    },
+    {
+      "file": "firmware/app/src/bp_sensor_service.c",
+      "source_relative": "app/src/bp_sensor_service.c",
+      "source_sha256": "0e33565e8db87d43703830e300dac4a95bb062f1c3f9a42904135b9caa7780d4",
+      "export_sha256": "0e33565e8db87d43703830e300dac4a95bb062f1c3f9a42904135b9caa7780d4",
+      "change": "byte-identical",
+      "normalized_export_sha256": "d086b6bb30c8bdc6b2f4b7c8fafba3f10f9089a677b4c80a4dc92dcf143c2417"
+    },
+    {
+      "file": "firmware/app/src/bp_status.c",
+      "source_relative": "app/src/bp_status.c",
+      "source_sha256": "b904e4ec8dbe0f9d5b7e0814df17fd5a7f0b5de9739fd346b59a34150b066f7f",
+      "export_sha256": "b904e4ec8dbe0f9d5b7e0814df17fd5a7f0b5de9739fd346b59a34150b066f7f",
+      "change": "byte-identical",
+      "normalized_export_sha256": "b904e4ec8dbe0f9d5b7e0814df17fd5a7f0b5de9739fd346b59a34150b066f7f"
+    },
+    {
+      "file": "firmware/app/src/bp_touch_policy.c",
+      "source_relative": "app/src/bp_touch_policy.c",
+      "source_sha256": "003edcd17b576d5b1e735f994952d798404ea61862e6908cb32733e2f3db4b8a",
+      "export_sha256": "003edcd17b576d5b1e735f994952d798404ea61862e6908cb32733e2f3db4b8a",
+      "change": "byte-identical",
+      "normalized_export_sha256": "05f95eb64c96109b443f3cacc04e8c3b57135271a11d99a3d957778ac4cae6cb"
+    },
+    {
+      "file": "firmware/app/src/main.c",
+      "source_relative": "app/src/main.c",
+      "source_sha256": "45f9a27356edb9bd0f51a4ea269f0e1139257cfa1d1235ed9ac1ab153814cd71",
+      "export_sha256": "45f9a27356edb9bd0f51a4ea269f0e1139257cfa1d1235ed9ac1ab153814cd71",
+      "change": "byte-identical",
+      "normalized_export_sha256": "45f9a27356edb9bd0f51a4ea269f0e1139257cfa1d1235ed9ac1ab153814cd71"
+    },
+    {
+      "file": "firmware/app/vendor/v5/include/bp_channel.h",
+      "source_relative": "app/vendor/v5/include/bp_channel.h",
+      "source_sha256": "42981ace5ef1dced78b0552f95d48b709691f25c210ec3302ea4e1af76697b3e",
+      "export_sha256": "42981ace5ef1dced78b0552f95d48b709691f25c210ec3302ea4e1af76697b3e",
+      "change": "byte-identical",
+      "normalized_export_sha256": "42981ace5ef1dced78b0552f95d48b709691f25c210ec3302ea4e1af76697b3e"
+    },
+    {
+      "file": "firmware/app/vendor/v5/include/bp_hid.h",
+      "source_relative": "app/vendor/v5/include/bp_hid.h",
+      "source_sha256": "e019a79b0fac201b7e88323c81489e6e809a26a103e42686f791f7a2f187ac7b",
+      "export_sha256": "e019a79b0fac201b7e88323c81489e6e809a26a103e42686f791f7a2f187ac7b",
+      "change": "byte-identical",
+      "normalized_export_sha256": "e019a79b0fac201b7e88323c81489e6e809a26a103e42686f791f7a2f187ac7b"
+    },
+    {
+      "file": "firmware/app/vendor/v5/include/bp_pointer.h",
+      "source_relative": "app/vendor/v5/include/bp_pointer.h",
+      "source_sha256": "107799a89e3e884dd2b4b9f15af3d702d5a8797d8eb7e34c61156515f752216a",
+      "export_sha256": "107799a89e3e884dd2b4b9f15af3d702d5a8797d8eb7e34c61156515f752216a",
+      "change": "byte-identical",
+      "normalized_export_sha256": "b071fe7da922df76bd982bae123668f0ff5e8ca7939cedd76f06fcd591852de1"
+    },
+    {
+      "file": "firmware/app/vendor/v5/src/bp_channel.c",
+      "source_relative": "app/vendor/v5/src/bp_channel.c",
+      "source_sha256": "257e4272a60474f0081719172bedbc10639cf67eaa16fcc1cc2f47fc1cdd9a5c",
+      "export_sha256": "257e4272a60474f0081719172bedbc10639cf67eaa16fcc1cc2f47fc1cdd9a5c",
+      "change": "byte-identical",
+      "normalized_export_sha256": "257e4272a60474f0081719172bedbc10639cf67eaa16fcc1cc2f47fc1cdd9a5c"
+    },
+    {
+      "file": "firmware/app/vendor/v5/src/bp_hid.c",
+      "source_relative": "app/vendor/v5/src/bp_hid.c",
+      "source_sha256": "430ad34311fa12857b3c2d6651b26cb82dfbf1351981de4f9607aaf89c889ab1",
+      "export_sha256": "430ad34311fa12857b3c2d6651b26cb82dfbf1351981de4f9607aaf89c889ab1",
+      "change": "byte-identical",
+      "normalized_export_sha256": "430ad34311fa12857b3c2d6651b26cb82dfbf1351981de4f9607aaf89c889ab1"
+    },
+    {
+      "file": "firmware/app/vendor/v5/src/bp_pointer.c",
+      "source_relative": "app/vendor/v5/src/bp_pointer.c",
+      "source_sha256": "a43b2cc6b6be20d17c29629abaa4ef984ece7c661aa8129cea681ac88d957cbc",
+      "export_sha256": "a43b2cc6b6be20d17c29629abaa4ef984ece7c661aa8129cea681ac88d957cbc",
+      "change": "byte-identical",
+      "normalized_export_sha256": "d174d1abbbc3fb9dad923e262f4182cf0f027841683b622af27641706143ad8c"
+    },
+    {
+      "file": "firmware/sensor9151/include/bp_hardware_class.h",
+      "source_relative": "sensor9151/include/bp_hardware_class.h",
+      "source_sha256": "1c01a480726f198795a218d5431fcdbb117c3f9b83a32116d7fb70355624c5cf",
+      "export_sha256": "1c01a480726f198795a218d5431fcdbb117c3f9b83a32116d7fb70355624c5cf",
+      "change": "byte-identical",
+      "normalized_export_sha256": "1c01a480726f198795a218d5431fcdbb117c3f9b83a32116d7fb70355624c5cf"
+    },
+    {
+      "file": "firmware/sensor9151/include/bp_iqs9151.h",
+      "source_relative": "sensor9151/include/bp_iqs9151.h",
+      "source_sha256": "4df223eab79ead21d330b980823aac16c4de2a2719da4c3062922254278a39eb",
+      "export_sha256": "4df223eab79ead21d330b980823aac16c4de2a2719da4c3062922254278a39eb",
+      "change": "byte-identical",
+      "normalized_export_sha256": "4df223eab79ead21d330b980823aac16c4de2a2719da4c3062922254278a39eb"
+    },
+    {
+      "file": "firmware/sensor9151/include/bp_iqs9151_runtime.h",
+      "source_relative": "sensor9151/include/bp_iqs9151_runtime.h",
+      "source_sha256": "9672d3f693aa2ee54fbb386873de3d22cfc8127f2bd722922181ec2f060284a2",
+      "export_sha256": "9672d3f693aa2ee54fbb386873de3d22cfc8127f2bd722922181ec2f060284a2",
+      "change": "byte-identical",
+      "normalized_export_sha256": "9672d3f693aa2ee54fbb386873de3d22cfc8127f2bd722922181ec2f060284a2"
+    },
+    {
+      "file": "firmware/sensor9151/src/bp_iqs9151.c",
+      "source_relative": "sensor9151/src/bp_iqs9151.c",
+      "source_sha256": "7a16b3f708bcda665127b5ee796f64ca348361c9a958882d4fc104dee54c03a2",
+      "export_sha256": "7a16b3f708bcda665127b5ee796f64ca348361c9a958882d4fc104dee54c03a2",
+      "change": "byte-identical",
+      "normalized_export_sha256": "7a16b3f708bcda665127b5ee796f64ca348361c9a958882d4fc104dee54c03a2"
+    },
+    {
+      "file": "firmware/sensor9151/src/bp_iqs9151_zephyr.c",
+      "source_relative": "sensor9151/src/bp_iqs9151_zephyr.c",
+      "source_sha256": "d2dabcc53df8663a6cac34ba327d1bba3576b1543c8231e52fb519bc911cf363",
+      "export_sha256": "d2dabcc53df8663a6cac34ba327d1bba3576b1543c8231e52fb519bc911cf363",
+      "change": "byte-identical",
+      "normalized_export_sha256": "d2dabcc53df8663a6cac34ba327d1bba3576b1543c8231e52fb519bc911cf363"
+    }
+  ]
+}

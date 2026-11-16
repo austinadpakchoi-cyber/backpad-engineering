@@ -1,0 +1,7 @@
+board:
+  name: backpad
+  full_name: BackPad October 2026 nRF52840 QIAA
+  vendor: backpad
+  socs:
+    - name: nrf52840
+

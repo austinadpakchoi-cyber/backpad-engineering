@@ -1,0 +1,509 @@
+{
+  "kind": "current local execution",
+  "hardware_used": false,
+  "historical_r2_source_id": "1ef290e5f908b07023b844b98ee0786ad732f1902652f1a56c84a9517289de71",
+  "compiler_family": "MSVC",
+  "input_kind": "real normalized 1600-frame sensor capture",
+  "synthetic_scope": "18 generated stopped-finger/pressure-tail cases, not real captures",
+  "real_capture": {
+    "v15": {
+      "motion": 0,
+      "pressed": 1,
+      "final_buttons": 0,
+      "first_report_after_window_start_ms": null
+    },
+    "r1": {
+      "motion": 16,
+      "pressed": 0,
+      "final_buttons": 0,
+      "first_report_after_window_start_ms": 101
+    },
+    "r2": {
+      "motion": 16,
+      "pressed": 0,
+      "final_buttons": 0,
+      "first_report_after_window_start_ms": 101
+    }
+  },
+  "release_tail": {
+    "v15": [
+      {
+        "cadence": "5",
+        "tail_um": "500",
+        "tail_ms": "60",
+        "hid_tail_counts": "2.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "500",
+        "tail_ms": "120",
+        "hid_tail_counts": "3.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "500",
+        "tail_ms": "180",
+        "hid_tail_counts": "4.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "1000",
+        "tail_ms": "60",
+        "hid_tail_counts": "2.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "1000",
+        "tail_ms": "120",
+        "hid_tail_counts": "3.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "1000",
+        "tail_ms": "180",
+        "hid_tail_counts": "8.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "1500",
+        "tail_ms": "60",
+        "hid_tail_counts": "0.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "1500",
+        "tail_ms": "120",
+        "hid_tail_counts": "0.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "1500",
+        "tail_ms": "180",
+        "hid_tail_counts": "12.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "500",
+        "tail_ms": "60",
+        "hid_tail_counts": "0.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "500",
+        "tail_ms": "120",
+        "hid_tail_counts": "4.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "500",
+        "tail_ms": "180",
+        "hid_tail_counts": "5.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "1000",
+        "tail_ms": "60",
+        "hid_tail_counts": "0.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "1000",
+        "tail_ms": "120",
+        "hid_tail_counts": "0.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "1000",
+        "tail_ms": "180",
+        "hid_tail_counts": "4.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "1500",
+        "tail_ms": "60",
+        "hid_tail_counts": "0.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "1500",
+        "tail_ms": "120",
+        "hid_tail_counts": "3.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "1500",
+        "tail_ms": "180",
+        "hid_tail_counts": "0.000",
+        "left": "0",
+        "final_buttons": "0"
+      }
+    ],
+    "r1": [
+      {
+        "cadence": "5",
+        "tail_um": "500",
+        "tail_ms": "60",
+        "hid_tail_counts": "2.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "500",
+        "tail_ms": "120",
+        "hid_tail_counts": "3.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "500",
+        "tail_ms": "180",
+        "hid_tail_counts": "4.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "1000",
+        "tail_ms": "60",
+        "hid_tail_counts": "2.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "1000",
+        "tail_ms": "120",
+        "hid_tail_counts": "7.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "1000",
+        "tail_ms": "180",
+        "hid_tail_counts": "8.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "1500",
+        "tail_ms": "60",
+        "hid_tail_counts": "0.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "1500",
+        "tail_ms": "120",
+        "hid_tail_counts": "8.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "1500",
+        "tail_ms": "180",
+        "hid_tail_counts": "12.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "500",
+        "tail_ms": "60",
+        "hid_tail_counts": "0.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "500",
+        "tail_ms": "120",
+        "hid_tail_counts": "4.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "500",
+        "tail_ms": "180",
+        "hid_tail_counts": "5.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "1000",
+        "tail_ms": "60",
+        "hid_tail_counts": "0.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "1000",
+        "tail_ms": "120",
+        "hid_tail_counts": "6.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "1000",
+        "tail_ms": "180",
+        "hid_tail_counts": "9.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "1500",
+        "tail_ms": "60",
+        "hid_tail_counts": "0.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "1500",
+        "tail_ms": "120",
+        "hid_tail_counts": "10.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "1500",
+        "tail_ms": "180",
+        "hid_tail_counts": "13.000",
+        "left": "0",
+        "final_buttons": "0"
+      }
+    ],
+    "r2": [
+      {
+        "cadence": "5",
+        "tail_um": "500",
+        "tail_ms": "60",
+        "hid_tail_counts": "2.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "500",
+        "tail_ms": "120",
+        "hid_tail_counts": "3.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "500",
+        "tail_ms": "180",
+        "hid_tail_counts": "4.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "1000",
+        "tail_ms": "60",
+        "hid_tail_counts": "2.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "1000",
+        "tail_ms": "120",
+        "hid_tail_counts": "3.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "1000",
+        "tail_ms": "180",
+        "hid_tail_counts": "8.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "1500",
+        "tail_ms": "60",
+        "hid_tail_counts": "0.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "1500",
+        "tail_ms": "120",
+        "hid_tail_counts": "0.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "5",
+        "tail_um": "1500",
+        "tail_ms": "180",
+        "hid_tail_counts": "12.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "500",
+        "tail_ms": "60",
+        "hid_tail_counts": "0.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "500",
+        "tail_ms": "120",
+        "hid_tail_counts": "4.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "500",
+        "tail_ms": "180",
+        "hid_tail_counts": "5.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "1000",
+        "tail_ms": "60",
+        "hid_tail_counts": "0.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "1000",
+        "tail_ms": "120",
+        "hid_tail_counts": "0.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "1000",
+        "tail_ms": "180",
+        "hid_tail_counts": "4.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "1500",
+        "tail_ms": "60",
+        "hid_tail_counts": "0.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "1500",
+        "tail_ms": "120",
+        "hid_tail_counts": "3.000",
+        "left": "0",
+        "final_buttons": "0"
+      },
+      {
+        "cadence": "10",
+        "tail_um": "1500",
+        "tail_ms": "180",
+        "hid_tail_counts": "0.000",
+        "left": "0",
+        "final_buttons": "0"
+      }
+    ]
+  },
+  "tail_regressions_over_v15_gt_1_count": {
+    "r1": 6,
+    "r2": 0
+  },
+  "passed": true,
+  "date": "2026-11-16",
+  "compiler": "MSVC 19.44.35225 x64 /std:c11 /O2",
+  "normalization_equivalence": {
+    "v15": {
+      "all_hid_events_equal_after_time_normalization": true,
+      "event_count": 411
+    },
+    "r2": {
+      "all_hid_events_equal_after_time_normalization": true,
+      "event_count": 419
+    },
+    "compiler_version": "19.44.35225"
+  },
+  "firmware_build": {
+    "executed": true,
+    "hardware_used": false,
+    "settings_redistributed": false,
+    "settings_condition": "authorized external IQS9151 settings file supplied locally",
+    "board": "backpad/nrf52840",
+    "ncs": "3.4.0-lts",
+    "nrf_revision": "99553055607b2e9885fbc80ccd11fa9da81c2df0",
+    "zephyr": "4.4.0",
+    "zephyr_revision": "bf801e4e3d19e1ffa76164346480cb7734dd2800",
+    "toolchain_id": "dcbdc366a1",
+    "compiler": "arm-zephyr-eabi-gcc 14.3.0",
+    "cmake": "4.2.1",
+    "west": "1.5.0",
+    "python": "3.12.4",
+    "flash_used_bytes": 408612,
+    "ram_used_bytes": 228224,
+    "image_bytes": 408612,
+    "image_sha256": "cdd36a135d6663a126d4fc49366bcc859db18ad69d017113452cdd6997e5aa64",
+    "build_id": "967f9a27b0003ba6faac4cf2eecc4f373ce94b4590bb5ae9b97c3ed3bcf781d2",
+    "note": "Public export build, not byte-identical historical installed firmware. No flash performed."
+  },
+  "host_python": "3.12.2"
+}

@@ -1,0 +1,41 @@
+{
+  "kind": "real sensor capture, normalized identifiers",
+  "source_firmware": "v0.20.15-intent-gain-r1",
+  "hardware": "BackPad V2 / IQS9151 / nRF52840",
+  "frames": 1600,
+  "frame_bytes": 48,
+  "header_bytes": 128,
+  "first_ms": 1000,
+  "motion_window_ms": [
+    7837,
+    8099
+  ],
+  "button_window_ms": [
+    7837,
+    8179
+  ],
+  "expected": {
+    "v15": {
+      "motion": 0,
+      "pressed": 1
+    },
+    "r2": {
+      "motion": 16,
+      "pressed": 0
+    }
+  },
+  "sanitization": [
+    "unused header fields zeroed",
+    "time origin shifted",
+    "sequence origin shifted",
+    "session ID replaced with 1",
+    "all 36 sensor bytes per frame retained byte-for-byte"
+  ],
+  "scope": "Separate targeted failure capture; not one of the historical 17 regression clips.",
+  "sha256": {
+    "capture.bin": "475e93d27bbd2ea3ec0ef0b5c9f1834ca374875ea3e71f9b60ed2351a4107e0d",
+    "filter.bin": "e24354829db89bebc6a975e8e3aaf0ecccf712726482db681c60dd4c37cc8fe2",
+    "gesture.bin": "1ddee7534701dd60bd2d89cbac47e8f5830d32e183c8ceffb9b3c6b496720101",
+    "touch.bin": "397198302c80fe84f4c84174dc69d33e0578fc1dae78ae7f2c4370a3e9bcd620"
+  }
+}
