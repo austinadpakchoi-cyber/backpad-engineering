@@ -242,6 +242,7 @@ typedef struct {
     bool resume_hint[BP_IQS9151_MAX_FINGERS];
     bp_lift_motion lift_motion[BP_IQS9151_MAX_FINGERS];
     bp_landing_motion landing;
+    bool area3_isolated, area3_motion[BP_IQS9151_MAX_FINGERS];
     uint8_t intent_streak[BP_IQS9151_MAX_FINGERS];
     uint16_t raw_x[BP_IQS9151_MAX_FINGERS], raw_y[BP_IQS9151_MAX_FINGERS];   /* last chip coordinates per slot */
     int16_t vel_x[BP_IQS9151_MAX_FINGERS], vel_y[BP_IQS9151_MAX_FINGERS];     /* last chip step per frame (v0.20: association predicts) */

@@ -731,6 +731,7 @@ static bool valid_sample(const bp_sample *s) {
        (s->weak_contacts & ~((1u<<s->count)-1u))) return false;
     if(s->motion_intent_id && (s->count!=1u || s->weak_contacts ||
        s->motion_intent_id!=s->contacts[0].id)) return false;
+    if(s->motion_only && s->count!=1u) return false;
     for(unsigned i=0u;i<s->count;++i) {
         if(s->contacts[i].id==0u || s->contacts[i].x<0 || s->contacts[i].x>BP_COORD_MAX ||
            s->contacts[i].y<0 || s->contacts[i].y>BP_COORD_MAX) return false;
@@ -1063,7 +1064,7 @@ static unsigned confirm_extras(bp_pointer *p,const bp_sample *s,uint64_t ignore_
     memcpy(p->extras,next,sizeof(next));return confirmed;
 }
 static bool same_frame(const bp_sample *a,const bp_sample *b) {
-    if(a->motion_intent_id!=b->motion_intent_id) return false;
+    if(a->motion_intent_id!=b->motion_intent_id || a->motion_only!=b->motion_only) return false;
     if(a->session!=b->session || a->sequence!=b->sequence || a->time_ms!=b->time_ms || a->count!=b->count || a->weak_contacts!=b->weak_contacts) return false;
     for(unsigned i=0u;i<a->count;++i)
         if(a->contacts[i].id!=b->contacts[i].id || a->contacts[i].x!=b->contacts[i].x || a->contacts[i].y!=b->contacts[i].y || a->strengths[i]!=b->strengths[i]) return false;
@@ -1175,6 +1176,12 @@ bp_result bp_process(bp_pointer *p,const bp_sample *s,uint64_t now) {
     if(p->release_pending) return BP_WAITING;
     p->last_fresh_ms=s->time_ms; p->have_fresh=true;
     bp_sample relevant;
+    if(s->motion_only && (p->mode==BP_DRAG || p->mode==BP_DRAG_LOCK || p->scroll_latched ||
+                          p->mode==BP_SCROLL || p->mode==BP_PAIR_RELEASE || p->lock_rejoin)) {
+        /* A low-area swipe cannot inherit a locked drag or stand in for a lost pair. */
+        relevant=(bp_sample){.kind=BP_DATA,.session=s->session,.sequence=s->sequence,.time_ms=s->time_ms};
+        s=&relevant;
+    }
     if(p->config.ignore_weak_secondary && s->count>1u && !p->scroll_latched) {
         unsigned primary=0;
         for(unsigned i=0;i<s->count;i++)if(s->contacts[i].id==p->contact_id && p->mode!=BP_IDLE)primary=i;
@@ -1264,6 +1271,11 @@ bp_result bp_process(bp_pointer *p,const bp_sample *s,uint64_t now) {
     if(s->count==1u) {
         bool handled=false;bp_result confidence_result=primary_confidence(p,s,0u,now,&handled);
         if(handled)return confidence_result;
+    }
+    if(s->motion_only) {
+        p->tap_rejoin_pending=false;
+        if(p->mode==BP_CANDIDATE) p->mode=BP_IDLE;
+        p->second_tap=false;
     }
     if(p->config.tap_drag && p->mode==BP_IDLE && p->tap_rejoin_pending && s->count) {
         p->tap_rejoin_pending=false;
@@ -1606,13 +1618,20 @@ bp_result bp_process(bp_pointer *p,const bp_sample *s,uint64_t now) {
         p->down_ms=s->time_ms; p->down_x=x; p->down_y=y; p->anchor_x=x; p->anchor_y=y;
         p->remainder_x=0; p->remainder_y=0; p->moved=false;
         discard_motion(p);p->motion_active=false;p->landing_ready=false;p->landing_frames=1;p->landing_last_ms=s->time_ms;
-        if(p->recovering) {   /* resumed after a cancel: track only, no tap, no hold (after the generic init, Codex) */
+        if(p->recovering || s->motion_only) {   /* track only, without tap or hold ownership */
             p->recovering=false;p->tap_tracking=false;p->hold_eligible=false;p->moved=true;p->mode=BP_MOVING;
             p->motion_active=true;p->landing_ready=true;
         }
         remember_primary(p,&s->contacts[0],s->time_ms,true);
         p->last_raw_x=s->contacts[0].x;p->last_raw_y=s->contacts[0].y;p->contact_ms=s->time_ms;
-        (void)movement_observe(p,s,x,y);return BP_OK;
+        bool movement_allowed=movement_observe(p,s,x,y);
+        if(s->motion_only && movement_allowed && p->config.tap_catch_up && s->motion_intent_id==p->contact_id) {
+            bp_contact origin={.id=p->contact_id,.x=s->motion_origin_x,.y=s->motion_origin_y};
+            int32_t ox,oy;transform(&p->config,&origin,&ox,&oy);
+            p->guard.ready=true;p->guard.x=x;p->guard.y=y;p->guard.ms=s->time_ms;
+            if(!emit_step_um(p,x-ox,y-oy)) {cancel(p);return BP_BACKPRESSURE;}
+        }
+        return BP_OK;
     }
     if(s->contacts[0].id==p->contact_id && !primary_position_ok(p,s,&s->contacts[0])) {if(p->config.median_tap && p->mode==BP_CANDIDATE && s->time_ms-p->down_ms<=p->config.tap_ms){++p->tap_spikes;return BP_IGNORED;}cancel(p);return BP_FAULT;}
     if(s->contacts[0].id!=p->contact_id) {

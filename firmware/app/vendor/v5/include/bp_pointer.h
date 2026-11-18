@@ -130,6 +130,7 @@ typedef struct {
     /* With motion_intent_id: where the evidenced trajectory began (the settled baseline after landing,
      * core coordinates). The core may repay the travel from here, never from the landing point. */
     int32_t motion_origin_x, motion_origin_y;
+    bool motion_only; /* Low-area swipe evidence cannot acquire any button. */
 } bp_sample;
 typedef struct {
     uint32_t tap_ms, hold_ms, stale_ms;

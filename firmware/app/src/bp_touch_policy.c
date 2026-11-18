@@ -317,6 +317,54 @@ static bool landing_motion_observe(bp_landing_motion *m, unsigned slot, bp_landi
     return false;
 }
 
+/* Require sustained same-direction travel at area 3 and signal near its
+ * window peak. This excludes brief centroid shifts and falling lift tails. */
+static bool area3_swipe(const bp_landing_motion *m, const bp_touch_params *params,
+                        float *dx_out, float *dy_out) {
+    if (m->n < 5u) return false;
+    const bp_landing_point *last = &m->p[m->n - 1u];
+    uint16_t peak = last->strength;
+    for (unsigned i = m->n; i > 0u; --i) {
+        unsigned first = i - 1u, span = m->n - first;
+        const bp_landing_point *a = &m->p[first];
+        if (a->area != 3u || a->strength < params->enter_strength ||
+            a->strength / 3u < params->enter_density || last->ms - a->ms > 55u) break;
+        if (a->strength > peak) peak = a->strength;
+        if (span < 5u || last->ms - a->ms < 27u) continue;
+        if ((uint32_t)last->strength * 100u < (uint32_t)peak * 80u) break;
+        float dx = ((int32_t)last->x - a->x) * MM_X, dy = ((int32_t)last->y - a->y) * MM_Y;
+        float net2 = dx * dx + dy * dy;
+        if (net2 < 1.2f * 1.2f) continue;
+        const bp_landing_point *mid = &m->p[first + span / 2u];
+        float early = ((int32_t)mid->x - a->x) * MM_X * dx + ((int32_t)mid->y - a->y) * MM_Y * dy;
+        if (early < net2 * 0.23f || early > net2 * 0.77f) continue;
+        float path = 0.0f, backtrack = 0.0f;
+        for (unsigned j = first + 1u; j < m->n; ++j) {
+            float sx = ((int32_t)m->p[j].x - m->p[j - 1u].x) * MM_X;
+            float sy = ((int32_t)m->p[j].y - m->p[j - 1u].y) * MM_Y;
+            float advance = sx * dx + sy * dy;
+            if (advance < 0.0f) backtrack -= advance;
+            path += sqrtf(sx * sx + sy * sy);
+        }
+        if (net2 >= 0.85f * path * path && backtrack <= net2 * 0.07f) {
+            *dx_out = dx; *dy_out = dy;
+            return true;
+        }
+    }
+    return false;
+}
+
+static void set_motion_origin(bp_sample *out, const bp_touch_params *params, float dx, float dy) {
+    float travel = sqrtf(dx * dx + dy * dy);
+    float scale = travel > BP_TOUCH_REPAY_CAP_MM ? BP_TOUCH_REPAY_CAP_MM / travel : 1.0f;
+    if (params->orient & BP_TOUCH_FLIP_X) dx = -dx;
+    if (params->orient & BP_TOUCH_FLIP_Y) dy = -dy;
+    int32_t ox = out->contacts[0].x - (int32_t)lroundf(dx * scale / MM_X);
+    int32_t oy = out->contacts[0].y - (int32_t)lroundf(dy * scale / MM_Y);
+    out->motion_origin_x = ox < 0 ? 0 : ox > BP_COORD_MAX ? BP_COORD_MAX : ox;
+    out->motion_origin_y = oy < 0 ? 0 : oy > BP_COORD_MAX ? BP_COORD_MAX : oy;
+}
+
 /* One Euro filter step on one axis (mm, mm/s). */
 static float euro(float *x, float *dx, float raw, float dt, const bp_touch_filter_params *fp) {
     float v = (raw - *x) / dt;
@@ -471,6 +519,17 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
         state->session = session;
     }
     const bp_touch_filter_params *fp = state->fp ? state->fp : &default_filter;
+    if (f->fingers_reported > 1u) {
+        /* A provisional single may not serve as a member of a pair. Let the
+         * regular admission and pair confirmation re-evaluate all contacts. */
+        for (unsigned k = 0; k < BP_IQS9151_MAX_FINGERS; ++k) {
+            if (!state->area3_motion[k]) continue;
+            if (state->admitted[k]) log_release(state, k, true);
+            state->admitted[k] = false;
+            state->area3_motion[k] = false;
+            state->weak_frames[k] = 0;
+        }
+    }
     /* Contact association (v0.19). Chip slot numbers are not trusted: the chip hands one finger between its slots
      * (board 1 circles at 00:27: every ~100 ms, ending the lifetime each time, so the core saw two contacts, lost
      * its primary and cancelled into wait-for-lift) and swaps two fingers' slots (Codex, two-finger hold frames
@@ -567,14 +626,21 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
     bool raw_proven[BP_IQS9151_MAX_FINGERS] = {false};
     bool landing_proven[BP_IQS9151_MAX_FINGERS] = {false};
     float landing_dx = 0.0f, landing_dy = 0.0f;
+    unsigned area3_slot = BP_IQS9151_MAX_FINGERS;
+    float area3_dx = 0.0f, area3_dy = 0.0f;
+    bool any_admitted = false;
     unsigned eligible = 0;   /* contacts that are or could be admitted this frame: intent is single-finger only */
     for (unsigned k = 0; k < BP_IQS9151_MAX_FINGERS; k++) {
         const bp_iqs9151_finger *g = &f->finger[k];
+        any_admitted |= state->admitted[k];
         if (g->valid && (state->admitted[k] || (g->area >= params->enter_area && g->area &&
             g->strength >= params->enter_strength && g->strength / g->area >= params->enter_density))) eligible++;
     }
     bool lone_raw = f->fingers_reported == 1u;
-    if (!lone_raw) state->landing.n = 0;
+    if (!lone_raw) {
+        state->landing.n = 0;
+        state->area3_isolated = f->fingers_reported == 0u;
+    }
     unsigned reported = 0;
     for (unsigned k = 0; k < BP_IQS9151_MAX_FINGERS; k++) {
         const bp_iqs9151_finger *g = &f->finger[k];
@@ -594,6 +660,7 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
                 log_release(state, k, false);
                 state->present[k] = false;
                 state->admitted[k] = false;
+                state->area3_motion[k] = false;
                 state->weak_frames[k] = 0;
                 continue;
             }
@@ -610,6 +677,7 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
         bool pass = held ? hold_quality(g, params)
                          : g->strength >= params->enter_strength && g->area >= params->enter_area &&
                            density >= params->enter_density;
+        if (pass && !held) state->area3_isolated = false;
         bool watch_landing = lone_raw && (!held || (time_ms - state->start_ms[k] <= 130u &&
                               !state->pair_seen[k] && !state->intent[k].confirmed)) &&
                              (fp->flags & (BP_TF_EURO | BP_TF_STRING | BP_TF_SETTLE)) ==
@@ -637,6 +705,8 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
             landing_proven[k] = landing_motion_observe(&state->landing, k,
                 (bp_landing_point){time_ms, (uint16_t)raw_mx, (uint16_t)raw_my, g->strength, g->area},
                 !held, pass, &landing_dx, &landing_dy);
+            if (state->area3_isolated && !any_admitted && !pass && params->enter_area == 4u &&
+                area3_swipe(&state->landing, params, &area3_dx, &area3_dy)) area3_slot = k;
         }
         bool fresh = false;
         uint16_t prev = state->prev_strength[k];
@@ -646,9 +716,10 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
             else if (++state->weak_frames[k] >= BP_TOUCH_RELEASE_FRAMES) {
                 log_release(state, k, true);
                 state->admitted[k] = false; /* lifted: reported as gone from this frame on */
+                state->area3_motion[k] = false;
                 state->weak_frames[k] = 0;
             }
-        } else if (pass) {
+        } else if (pass || area3_slot == k) {
             /* a new contact close to an admitted one must persist a 2nd frame (one-frame split blobs) */
             bool near = false;
             for (unsigned j = 0; j < BP_IQS9151_MAX_FINGERS; j++) {
@@ -669,6 +740,8 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
             if (++state->next_birth >= (UINT64_MAX >> 3)) state->next_birth = 1;
             state->births[k] = state->next_birth;
             state->admitted[k] = true;
+            state->area3_motion[k] = area3_slot == k;
+            state->area3_isolated = false;
             state->settle[k] = 0; state->near_frames[k] = 0;
             fresh = true;
         } else {
@@ -894,6 +967,7 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
             state->pair_seen[(out->contacts[i].id & 7u) - 1u] = true;
     } else {
         unsigned k = (unsigned)((out->contacts[0].id & 7u) - 1u);
+        out->motion_only = state->area3_motion[k];
         /* the core consumes the evidence only on the 2nd consecutive evidenced frame (one frame never
          * cancels a tap on its own) */
         if (eligible == 1u && state->intent[k].active && state->trusted_ms[k] == time_ms &&
@@ -907,15 +981,7 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
              * a sudden cursor jump. Subsequent deltas retain the same gain. */
             out->motion_origin_x = out->contacts[0].x;
             out->motion_origin_y = out->contacts[0].y;
-            if (landing_proven[k]) {
-                float scale = BP_TOUCH_REPAY_CAP_MM / sqrtf(landing_dx * landing_dx + landing_dy * landing_dy);
-                float dx = (params->orient & BP_TOUCH_FLIP_X) ? -landing_dx : landing_dx;
-                float dy = (params->orient & BP_TOUCH_FLIP_Y) ? -landing_dy : landing_dy;
-                int32_t ox = out->motion_origin_x - (int32_t)lroundf(dx * scale / MM_X);
-                int32_t oy = out->motion_origin_y - (int32_t)lroundf(dy * scale / MM_Y);
-                out->motion_origin_x = ox < 0 ? 0 : ox > BP_COORD_MAX ? BP_COORD_MAX : ox;
-                out->motion_origin_y = oy < 0 ? 0 : oy > BP_COORD_MAX ? BP_COORD_MAX : oy;
-            }
+            if (landing_proven[k]) set_motion_origin(out, params, landing_dx, landing_dy);
         } else if (state->intent_streak[k] >= 2u && state->intent[k].confirmed && state->intent[k].n) {
             const bp_touch_intent *m = &state->intent[k];
             out->motion_intent_id = out->contacts[0].id;
@@ -946,6 +1012,10 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
             }
             out->motion_origin_x = (int32_t)lroundf(ox / MM_X);
             out->motion_origin_y = (int32_t)lroundf(oy / MM_Y);
+        }
+        if (area3_slot == k && out->motion_only) {
+            out->motion_intent_id = out->contacts[0].id;
+            set_motion_origin(out, params, area3_dx, area3_dy);
         }
     }
     if (out->count == 1u && out->motion_intent_id) state->recent_motion_ms = time_ms;
