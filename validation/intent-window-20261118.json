@@ -1,0 +1,27 @@
+{
+  "input": "samples/pressure-drop/capture.bin (1600 frames)",
+  "compiler": "MSVC",
+  "current_matches_r2_hid_events": 419,
+  "equal_release_tail_cases": 18,
+  "eviction_memmove": {
+    "scope": "intent_observe only, calls and size argument counted during native replay",
+    "archived_r2": {
+      "calls": 311,
+      "bytes": 183776
+    },
+    "current": {
+      "calls": 302,
+      "bytes": 178848
+    }
+  },
+  "firmware_build": {
+    "board": "backpad/nrf52840",
+    "NCS": "3.4.0",
+    "external_settings": true,
+    "build_id": "647c679648066a109d566523369f9bc2936203084b6e10fa5b64d9126a05f05d",
+    "flash_bytes": 408644,
+    "ram_bytes": 228224,
+    "image_sha256": "35a50c61876f525f62082a50c12b71e6f22781b993a74d9d692c181a4e6ef1d8"
+  },
+  "hardware_used": false
+}
