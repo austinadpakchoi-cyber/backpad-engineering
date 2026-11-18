@@ -2,7 +2,7 @@
 
 ## 先跑无需硬件的对照
 
-依赖：Python 3.10+；Windows x64 MSVC Build Tools（C++桌面开发组件）。本轮使用Python 3.12环境与MSVC 19.44.35225，C11、`/O2`；无pip依赖。脚本可从Visual Studio安装器定位MSVC，也可在x64 Native Tools终端运行。代码保留`CC/cc/gcc/clang`路径，但Linux/macOS本轮未执行，不标为已验证平台。
+Windows 复现需要 Python 3.10+ 和 x64 MSVC Build Tools（C++ 桌面开发组件）。脚本使用 C11 和 `/O2`，可从 Visual Studio 安装器定位 MSVC，也可在 x64 Native Tools 终端运行。GitHub 源码 ZIP 解压后即可运行，Python 端只使用标准库。`CC/cc/gcc/clang` 路径也已保留，当前公开验证使用 Windows x64。
 
 在仓库根目录：
 
@@ -14,11 +14,11 @@ python tools/reproduce.py --out .build/replay
 
 工具实际执行以下步骤：
 
-1. 校验[SOURCE.json](../SOURCE.json)内按LF归一的导出源码摘要和样本原始字节摘要，避免Git换行转换造成假失败。
-2. 从当前策略应用 [R2 恢复补丁](../samples/variants/r2-bp_touch_policy.c.patch)，校验历史 R2 摘要，然后用[历史差异](../samples/variants/manifest.json)还原 v15/R1。只重建所需的策略文件。
-3. 独立编译当前实现与三个历史版本，给 C 回放器输入同一段采集与配置，逐条比较当前实现与 R2 的带时间戳 HID 报告。
-4. 各版本均运行 18 组停止/抬手测试，检查左键按下沿和最终键态，比较当前实现与 R2 的各项指标，并按 v15 基线追踪 R1/R2 的尾移。
-5. 写出实际结果JSON；代码不以预存报告代替执行。
+1. 校验样本原始字节摘要。用 [R2 源码归档差异](../samples/variants/r2-export-overrides.zip) 与公开源码重建历史 R2，只归档后续修改过的 5 个文件。按 LF 归一后逐文件校验 [SOURCE.json](../SOURCE.json) 记录的历史摘要。
+2. 对归档的 R2 策略应用[历史差异](../samples/variants/manifest.json)还原 v15 和 R1。三个历史回放使用归档的指针代码和头文件，当前回放使用现行固件代码。
+3. 独立编译当前实现与三个历史版本，给 C 回放器输入同一段采集与配置。当前版在压力下降窗口必须恢复移动且不出现按键；全样本的按键和滚轮报告与 R2 一致。完整 HID 报告的比较结果单独记录。
+4. 各版本均运行 18 组停止/抬手测试。逐组检查左键按下与最终释放，按 v15 基线追踪 R1、R2 和当前版的尾移。当前版须满足与 R2 相同的停止/抬手判定阈值。
+5. 实际运行结果写入 `result.json`。当前 1 mm PLA 固件的原型验证另见[连续性验证摘要](../validation/pla-continuity-20261118.json)。
 
 需要单独改变接触强度时，使用[可选的 CUDA 或 CPU 灵敏度扫描](TECHNICAL-SOLUTION.md#复现与资料)。
 
@@ -38,7 +38,7 @@ python tools/reproduce.py --out .build/replay
 
 原始记录格式：头部offset20为u32帧数；offset64开始为回放读取的几何配置；每帧依次为u32时间、u32序号、u32会话、36字节传感内容。所有整数按历史小端格式读取。参数文件按本工程C结构ABI解释；本轮在Windows x64编译并由`sizeof(bp_config)==96`约束，未证明任意架构ABI通用。
 
-本轮已将原始回放器+原始输入，与公开回放器+脱敏输入做完整HID事件比较：时间原点平移后，v15的411个、R2的419个事件逐项相等。此项同时覆盖入口适配和归一化没有改变该样本输出。它不能证明所有未来输入都等价。
+历史导出时已将原始回放器和输入与公开回放器和脱敏输入逐条对照。时间原点平移后，v15 的 411 条、R2 的 419 条 HID 报告各与历史版本逐项相等。当前实现用同一输入独立回放，完整报告数见 `current_hid_event_comparison`。
 
 判定：metadata中的motion窗口v15为0、R2为16；button窗口v15为1、R2为0；最终buttons为0。101ms是该窗口起点至首次回放报告的差值，不是屏幕响应时间。HID报告次数不是位移像素数。
 
@@ -46,11 +46,11 @@ python tools/reproduce.py --out .build/replay
 
 [release_tail.c](../tools/release_tail.c)复用历史测试，不伪装成真实传感器采样。生成：先移动、停住，再让压力代理下降并施加质心尾移；组合为2种帧间隔（5/10ms）×3种尾移（500/1000/1500µm）×3种持续时间（60/120/180ms）。使用[samples/release-tail/gesture.bin](../samples/release-tail/gesture.bin)固定96字节参数。
 
-判定为**相对同条件v15新增尾移大于1 HID count**的用例数量：历史pressure R1为6，R2为0；同时最终按钮必须释放。不是要求绝对尾移为0，也不是证明18项代表所有真实抬手。
+统计**相对同条件 v15 新增尾移大于 1 HID count** 的用例数量。历史 pressure R1 为 6、R2 为 0，当前版的通过条件为 0。所有用例都必须维持松开状态。
 
 ## 完整固件构建
 
-本轮实际编译完成；条件是复用本机已安装SDK，并从候选之外提供已授权的IQS9151设置C文件。该文件由Azoteq设置头生成，重分发权利未确定，所以公开包故意不包含；无需它也能完成上述全部host回放。
+完整固件编译需要 nRF Connect SDK 和取得使用授权的 IQS9151 设置 C 文件。设置由厂商工具生成，需自行准备。上述主机回放只读取仓库内的样本与参数。
 
 已使用版本：
 
@@ -76,13 +76,12 @@ python -m west build --no-sysbuild -b backpad/nrf52840 -s <repo>/firmware/app -d
 
 设置文件须与R2传感配置一致：13Rx×12Tx、对应电极映射、分辨率及原调参；不能拿任意同名文件冒充已复现版本。公开包不自动下载、生成或伪造厂商设置。`tools/source_id.py`把实际公开固件文件与外置设置一起绑定为新build ID，因此本轮镜像不冒用历史已刷写固件身份。
 
-产物：`<BuildDir>/firmware/zephyr/zephyr.elf`、`.hex`、`.bin`。本轮FLASH408612B、RAM228224B；结果与新build ID/镜像摘要见[实际执行记录](../validation/local-20261116.json)。只做编译，没有刷写、读设备或新运行验收；镜像不随公开包分发。
+产物位于 `<BuildDir>/firmware/zephyr/`，包括 `zephyr.elf`、`zephyr.hex` 和 `zephyr.bin`。历史导出构建记录见[本机构建记录](../validation/local-20261116.json)，现行 1 mm PLA 版本的构建及刷写核对见[连续性验证摘要](../validation/pla-continuity-20261118.json)。
 
-## 历史与本轮分别计
+## 验证范围
 
-- **本轮实际执行：** 上述真实样本三版本、18合成反例、原始与公开HID事件等价、条件完整编译。
-- **历史已有记录：** R2的17组真实输入回归；408612字节刷写读回一致；BLE运行检查。该17组未全部收录，不宣称本公开命令重跑了它们。
-- **实现/定义：** 完整状态机还有大量路径，不因源码存在就宣称覆盖；参数与平台ABI限制如上。
-- **尚待验证：** R2刷后的真实快划/微调/抬手/双指体验，以及本轮新build ID产物实机运行。
+- **公开主机回放**覆盖一个真实压力下降样本和 18 项合成释放尾迹，在历史版和当前版上分别运行。
+- **历史 R2 记录**另含 17 组真实输入回归和本机硬件检查。公开包保留选定样本及已有指标。
+- **1 mm PLA 原型记录**包含团队内部的分动作实采、固件回放和板端读回摘要。用户设备上的短划体验还在继续验证。
 
-本候选未加入CI工作流和通过徽章。干净远端runner尚未实跑；未来可先接host回放，不将硬件体验转换成CI绿灯。重复执行请选择新输出目录；确认保留result.json后，可自行删除仅由本次命令生成的输出目录，不删除原始采样。
+每次执行使用新输出目录。需要精简产物时，可保留 `result.json` 并清理本次命令创建的编译目录。

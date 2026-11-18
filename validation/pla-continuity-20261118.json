@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "kind": "developer validation summary",
+  "sample_condition": "BackPad IQS9151, 1 mm PLA touch cover",
+  "scope": "Identical-input replay of selected locally recorded touch episodes and synthetic perturbations. The local capture fixtures and receiver logs are not included. Public host replay uses the existing separate sample.",
+  "firmware": {
+    "commit": "40f242ee9db7b70c0061632dab4cb6bc8e4ac9bd",
+    "build_id": "bcc3dc8282bc66af9308ed6031da9f9665689dae6d799dc0430c2f8d7f53a08b",
+    "build_bytes": 412148,
+    "boot_orientation": {
+      "rotation_degrees": 0,
+      "invert_x": true,
+      "invert_y": false
+    },
+    "standard_area_entry_exit": [
+      4,
+      3
+    ],
+    "lab_flash_readback_exact": true,
+    "lab_boot_iqs_stream_and_ble_subscription_checked": true,
+    "scope": "Flash readback and startup checks. This build has not yet been evaluated in a new measured gesture session."
+  },
+  "weak_relanding": {
+    "commit": "716cae3aa6afb3127362686d18d0366178bfe5a0",
+    "scope": "Two continuous weak strokes previously produced zero movement and a button press.",
+    "candidate": [
+      {
+        "motion": 1,
+        "first_after_landing_ms": 61,
+        "press_ms": []
+      },
+      {
+        "motion": 6,
+        "first_after_landing_ms": 116,
+        "press_ms": []
+      }
+    ]
+  },
+  "area3_relanding": {
+    "commit": "20afe8be34bce2f2925fe1e7f29f96501614030f",
+    "scope": "An isolated area-3 contact must meet the configured density threshold and sustain coherent motion. Area-2 and briefly qualifying area-3 controls stayed quiet.",
+    "candidate": [
+      {
+        "movement_reports": 1,
+        "pressed_reports": 0,
+        "first_movement_after_contact_ms": 67
+      },
+      {
+        "movement_reports": 1,
+        "pressed_reports": 0,
+        "first_movement_after_contact_ms": 62
+      }
+    ],
+    "perturbation_cases_recovered": 16
+  },
+  "post_admission_freeze": {
+    "baseline_commit": "20afe8be34bce2f2925fe1e7f29f96501614030f",
+    "scope": "Recovery of two admitted contacts during the early lift hold. The remaining two checked freeze examples are still unresolved.",
+    "examples": [
+      {
+        "condition": "fingertip_short_swipe",
+        "approx_session_s": 12.76,
+        "recovered": true,
+        "baseline": {
+          "movement_reports": 0,
+          "pressed_reports": 1,
+          "first_movement_after_contact_ms": null
+        },
+        "candidate": {
+          "movement_reports": 15,
+          "pressed_reports": 0,
+          "first_movement_after_contact_ms": 95
+        }
+      },
+      {
+        "condition": "fingerpad_short_swipe",
+        "approx_session_s": 17.26,
+        "recovered": true,
+        "baseline": {
+          "movement_reports": 0,
+          "pressed_reports": 1,
+          "first_movement_after_contact_ms": null
+        },
+        "candidate": {
+          "movement_reports": 15,
+          "pressed_reports": 0,
+          "first_movement_after_contact_ms": 93
+        }
+      },
+      {
+        "condition": "fingertip_short_swipe",
+        "approx_session_s": 24.19,
+        "recovered": false,
+        "baseline": {
+          "movement_reports": 0,
+          "pressed_reports": 0,
+          "first_movement_after_contact_ms": null
+        },
+        "candidate": {
+          "movement_reports": 0,
+          "pressed_reports": 0,
+          "first_movement_after_contact_ms": null
+        }
+      },
+      {
+        "condition": "fingerpad_short_swipe",
+        "approx_session_s": 19.5,
+        "recovered": false,
+        "baseline": {
+          "movement_reports": 0,
+          "pressed_reports": 1,
+          "first_movement_after_contact_ms": null
+        },
+        "candidate": {
+          "movement_reports": 0,
+          "pressed_reports": 1,
+          "first_movement_after_contact_ms": null
+        }
+      }
+    ],
+    "stationary_tap_replay": {
+      "board_trace_duration_seconds_approx": 32,
+      "movement_reports": 0,
+      "left_downs": 22,
+      "same_ordered_hid_reports": true
+    },
+    "short_swipe_perturbations_passed": 16,
+    "stationary_tap_perturbations_passed": 8,
+    "protected_archive_cases": 18,
+    "native_cases": {
+      "gestures": 28,
+      "pressure": 102,
+      "tails": 18
+    },
+    "checks": {
+      "baseline_freeze_click_reproduced": true,
+      "primary_moves_without_click": true,
+      "primary_perturbations_move_without_click": true,
+      "fingerpad_primary_and_perturbations_move_without_click": true,
+      "stationary_tap_identical_and_zero_movement": true,
+      "stationary_perturbations_unchanged": true,
+      "archived_button_scroll_drag_unchanged": true,
+      "archived_labeled_gestures_exact": true,
+      "previous_weak_pla_repairs_preserved": true,
+      "previous_area3_repairs_preserved": true,
+      "previous_area2_and_brief_area3_unchanged": true,
+      "native_protections_pass": true,
+      "no_extra_click_drag_scroll_in_swipes": true
+    }
+  }
+}

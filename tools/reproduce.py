@@ -14,8 +14,13 @@ import re
 import shutil
 import subprocess
 import sys
+from zipfile import ZipFile
 
 ROOT = Path(__file__).resolve().parents[1]
+REPLAY_FILES = (
+    "app/src/bp_touch_policy.c", "app/include/bp_touch_policy.h",
+    "app/vendor/v5/src/bp_pointer.c", "app/vendor/v5/include/bp_pointer.h",
+)
 
 def digest(data):
     return hashlib.sha256(data).hexdigest()
@@ -61,6 +66,35 @@ def apply_diff(original, patch):
     result.extend(src[pos:])
     return "".join(result)
 
+def load_r2_source():
+    """Read the SOURCE.json export using exact copies of changed files."""
+    source = json.loads((ROOT/"SOURCE.json").read_text(encoding="utf-8"))
+    entries = {item["file"]: item["normalized_export_sha256"] for item in source["files"]}
+    archive = ROOT/"samples/variants/r2-export-overrides.zip"
+    with ZipFile(archive) as overrides:
+        names = overrides.namelist()
+        require(len(names) == len(set(names)) and set(names) <= entries.keys(),
+                "Unexpected R2 source override")
+        files = {}
+        for rel, expected in entries.items():
+            data = overrides.read(rel) if rel in names else (ROOT/rel).read_bytes().replace(b"\r\n", b"\n")
+            require(digest(data) == expected, "Archived R2 source differs from SOURCE.json: "+rel)
+            files[rel.removeprefix("firmware/")] = data
+    return source, files
+
+def stage_replay_sources(out, archived=None, changes=()):
+    """Select matching policy and pointer source/header pairs for one build."""
+    out.mkdir()
+    differences = {item["file"]: item for item in changes}
+    for rel in REPLAY_FILES:
+        data = archived[rel] if archived is not None else (ROOT/"firmware"/rel).read_bytes()
+        if rel in differences:
+            change = differences[rel]
+            if change["patch"]:
+                data = apply_diff(data.decode("utf-8"), (ROOT/change["patch"]).read_text(encoding="utf-8")).encode()
+            require(digest(data) == change["normalized_sha256"], "Historical reconstruction mismatch: "+rel)
+        (out/Path(rel).name).write_bytes(data)
+
 def compiler_environment(out):
     env = os.environ.copy()
     for key in ("TMP", "TEMP", "TMPDIR"):
@@ -96,7 +130,10 @@ def compile_program(cc, env, msvc, out, variant_dir, harness, name):
     firmware = ROOT / "firmware"
     includes = [variant_dir, firmware/"app/include", firmware/"app/vendor/v5/include",
                 firmware/"sensor9151/include"]
-    sources = [ROOT/"tools"/harness, firmware/"app/vendor/v5/src/bp_pointer.c"]
+    pointer = variant_dir/"bp_pointer.c"
+    if not pointer.is_file():
+        pointer = firmware/"app/vendor/v5/src/bp_pointer.c"
+    sources = [ROOT/"tools"/harness, pointer]
     if Path(harness).name == "replay.c":
         sources.append(variant_dir/"bp_touch_policy.c")
     flags = ["BP_PHYSICAL_X_UM=54000", "BP_PHYSICAL_Y_UM=49500", "BP_SECONDARY_RELATIVE_PERCENT=20"]
@@ -126,15 +163,7 @@ def main():
     metadata = json.loads((sample/"metadata.json").read_text(encoding="utf-8"))
     for name, expected in metadata["sha256"].items():
         require(digest((sample/name).read_bytes()) == expected, "Sample changed: "+name)
-    source = json.loads((ROOT/"SOURCE.json").read_text(encoding="utf-8"))
-    policy_file = "firmware/app/src/bp_touch_policy.c"
-    current_policy = (ROOT/policy_file).read_text(encoding="utf-8")
-    historical_policy = apply_diff(current_policy, (ROOT/"samples/variants/r2-bp_touch_policy.c.patch").read_text())
-    for item in source["files"]:
-        archived_bytes = (historical_policy.encode() if item["file"] == policy_file
-                          else (ROOT/item["file"]).read_bytes().replace(b"\r\n", b"\n"))
-        require(digest(archived_bytes) == item["normalized_export_sha256"],
-                "Source no longer matches SOURCE.json: "+item["file"])
+    source, archived = load_r2_source()
     variants = json.loads((ROOT/"samples/variants/manifest.json").read_text())
     cc, env, msvc = compiler_environment(out)
     results = {"kind": "current local execution", "hardware_used": False,
@@ -147,16 +176,8 @@ def main():
     r2_events = None
     for label in ("v15", "r1", "r2", "current"):
         variant = out/label
-        variant.mkdir()
-        for rel in ("app/src/bp_touch_policy.c", "app/include/bp_touch_policy.h"):
-            text = (historical_policy if label != "current" and "firmware/" + rel == policy_file
-                    else (ROOT/"firmware"/rel).read_text(encoding="utf-8-sig"))
-            if label in variants:
-                change = next(x for x in variants[label]["changes"] if x["file"] == rel)
-                if change["patch"]:
-                    text = apply_diff(text, (ROOT/change["patch"]).read_text())
-                require(digest(text.encode()) == change["normalized_sha256"], "Historical reconstruction mismatch")
-            (variant/Path(rel).name).write_text(text, encoding="utf-8", newline="\n")
+        stage_replay_sources(variant, None if label == "current" else archived,
+                             variants.get(label, {}).get("changes", ()))
         exe = compile_program(cc, env, msvc, out, variant, "replay.c", label+"-capture")
         args = [str(exe), *[str(sample/n) for n in ("capture.bin", "touch.bin", "filter.bin", "gesture.bin")]]
         run = subprocess.run(args, capture_output=True, text=True, env=env, check=True)
@@ -164,8 +185,13 @@ def main():
         if label == "r2":
             r2_events = events
         elif label == "current":
-            require(events == r2_events, "Current HID reports differ from historical R2")
-            results["current_matches_r2_hid_events"] = len(events)
+            r2_controls = [e for e in r2_events if e["buttons"] or e["wheel"]]
+            current_controls = [e for e in events if e["buttons"] or e["wheel"]]
+            require(current_controls == r2_controls, "Current replay changed button or wheel reports on the public fixture")
+            results["current_hid_event_comparison"] = {"matches_r2": events == r2_events,
+                "current_events": len(events), "r2_events": len(r2_events)}
+            if events == r2_events:
+                results["current_matches_r2_hid_events"] = len(events)
         start, end = metadata["motion_window_ms"]
         bstart, bend = metadata["button_window_ms"]
         motion = [e for e in events if start <= e["ms"] <= end and (e["dx"] or e["dy"])]
@@ -176,6 +202,9 @@ def main():
         if label in metadata["expected"]:
             for field, expected in metadata["expected"][label].items():
                 require(result[field] == expected, f"{label}: unexpected {field}: {result[field]}")
+        if label == "current":
+            require(result["motion"] > 0 and result["pressed"] == 0,
+                    "Current replay did not move without a press in the public failure window")
         require(result["final_buttons"] == 0, label+": stuck button")
         # Persist only compact results, not 1600-row logs from every version.
         tail = compile_program(cc, env, msvc, out, variant, "release_tail.c", label+"-tail")
@@ -187,9 +216,8 @@ def main():
         tail_rows[label] = rows
         results["release_tail"][label] = rows
         results["executables"][label] = {"capture": str(exe.relative_to(out)), "tail": str(tail.relative_to(out))}
-    require(tail_rows["current"] == tail_rows["r2"], "Current synthetic tail metrics differ from R2")
     regressions = {}
-    for label in ("r1", "r2"):
+    for label in ("r1", "r2", "current"):
         n = 0
         for baseline, row in zip(tail_rows["v15"], tail_rows[label]):
             require(all(baseline[k] == row[k] for k in ("cadence","tail_um","tail_ms")), "Case order changed")
@@ -198,10 +226,12 @@ def main():
         regressions[label] = n
     require(regressions["r1"] == 6, "Historical R1 counterexample did not reproduce")
     require(regressions["r2"] == 0, "R2 regressed >1 HID count in a stopped-finger case")
+    require(regressions["current"] == 0, "Current replay regressed >1 HID count in a stopped-finger case")
     results["tail_regressions_over_v15_gt_1_count"] = regressions
     results["passed"] = True
     (out/"result.json").write_text(json.dumps(results, indent=2)+"\n", encoding="utf-8")
     print(json.dumps({"passed": True, "real_capture": results["real_capture"],
+                      "current_hid_event_comparison": results["current_hid_event_comparison"],
                       "synthetic_cases": 18, "tail_regressions": regressions}, indent=2))
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@
 
 | 内容 | 来源与处理 |
 |---|---|
-| firmware/app及部分sensor9151 | 维护者BackPad R2工程的精选副本；逐文件原字节摘要见SOURCE.json。CMake仅改外置设置/生成头入口。 |
+| firmware/app及部分sensor9151 | 源自维护者的 BackPad R2 精选导出。`SOURCE.json` 保留历史字节摘要。后续公开固件改动见本仓库提交及 1 mm PLA 验证摘要。 |
 | app/vendor/v5 | 工程历史中的内部指针/HID/通道核心，不是下载的Nordic SDK目录；未因目录名为vendor就删掉作者线索，也未虚构外部许可证。 |
 | tools/replay.c、release_tail.c | 原项目历史回放与尾迹工具；移除机器绝对路径、固定公开输入入口。算法结果的适配等价性已实测。 |
 | samples/pressure-drop | 维护者本人设备采样；保留触点信号，归一化标识、时间和序号。见复现说明；维护者已授权其按本仓库MIT许可公开、复制与再分发。 |
