@@ -241,6 +241,7 @@ typedef struct {
     uint64_t recent_motion_ms;
     bool resume_hint[BP_IQS9151_MAX_FINGERS];
     bp_lift_motion lift_motion[BP_IQS9151_MAX_FINGERS];
+    bool isolated_since_release; /* no raw pair during the current touch */
     bp_landing_motion landing;
     bool area3_isolated, area3_motion[BP_IQS9151_MAX_FINGERS];
     uint8_t intent_streak[BP_IQS9151_MAX_FINGERS];

@@ -257,6 +257,42 @@ static bool lift_motion_observe(bp_touch_filter_state *state, unsigned k,
            bx * bx + by * by >= 0.25f * (ax * ax + ay * ay);
 }
 
+/* Recovery is only considered on a frozen, admitted single touch. Use a
+ * recent, continuously sampled run after landing and require substantial
+ * travel in both halves, so a late centroid jump or a stopped finger peeling
+ * off cannot use the weaker pressure range on its own. */
+static bool frozen_swipe(const bp_lift_motion *m, uint64_t admitted_ms, float *dx_out, float *dy_out) {
+    if (m->n < 6u) return false;
+    const bp_lift_motion_point *last = &m->p[m->n - 1u];
+    uint16_t peak = last->strength;
+    for (unsigned i = m->n; i > 0u; --i) {
+        unsigned first = i - 1u;
+        const bp_lift_motion_point *start = &m->p[first];
+        if (start->ms < admitted_ms + 6u || last->ms - start->ms > 65u) break;
+        if (start->strength > peak) peak = start->strength;
+        if ((uint32_t)last->strength * 100u < (uint32_t)peak * 55u) break;
+        if (m->n - first < 6u || last->ms - start->ms < 35u) continue;
+        float dx = (last->x - start->x) * MM_X, dy = (last->y - start->y) * MM_Y;
+        float net2 = dx * dx + dy * dy;
+        if (net2 < 2.2f * 2.2f) continue;
+        const bp_lift_motion_point *mid = &m->p[first + (m->n - first) / 2u];
+        float progress = (mid->x - start->x) * MM_X * dx + (mid->y - start->y) * MM_Y * dy;
+        if (progress < 0.20f * net2 || progress > 0.74f * net2) continue;
+        float path = 0.0f;
+        for (unsigned j = first + 1u; j < m->n; ++j) {
+            float sx = (m->p[j].x - m->p[j - 1u].x) * MM_X;
+            float sy = (m->p[j].y - m->p[j - 1u].y) * MM_Y;
+            path += sqrtf(sx * sx + sy * sy);
+        }
+        if (net2 >= 0.86f * path * path) {
+            *dx_out = dx;
+            *dy_out = dy;
+            return true;
+        }
+    }
+    return false;
+}
+
 /* The normal gates and settling delay still decide contact ownership. An
  * isolated raw contact may prove a swipe across that delay if its motion
  * continues in the same direction. A declining signal alone cannot prove it. */
@@ -519,6 +555,7 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
         state->session = session;
     }
     const bp_touch_filter_params *fp = state->fp ? state->fp : &default_filter;
+    if (f->fingers_reported != 1u) state->isolated_since_release = f->fingers_reported == 0u;
     if (f->fingers_reported > 1u) {
         /* A provisional single may not serve as a member of a pair. Let the
          * regular admission and pair confirmation re-evaluate all contacts. */
@@ -626,6 +663,8 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
     bool raw_proven[BP_IQS9151_MAX_FINGERS] = {false};
     bool landing_proven[BP_IQS9151_MAX_FINGERS] = {false};
     float landing_dx = 0.0f, landing_dy = 0.0f;
+    unsigned frozen_slot = BP_IQS9151_MAX_FINGERS;
+    float frozen_dx = 0.0f, frozen_dy = 0.0f;
     unsigned area3_slot = BP_IQS9151_MAX_FINGERS;
     float area3_dx = 0.0f, area3_dy = 0.0f;
     bool any_admitted = false;
@@ -792,6 +831,7 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
         bool raw_sliding = lift_motion_observe(state, k, raw_mx, raw_my, g->strength, time_ms, fresh,
             trusted && eligible == 1u && g->strength >= motion_strength && density >= motion_density);
         raw_sliding |= landing_proven[k];
+        bool early_hold = false;
         /* lift hold: within the tap window a falling strength means the finger is leaving and the centroid drifts;
          * hold the position. v0.20: only for a contact that has NOT moved yet (01:43 free slide: a finger that
          * re-landed straight into a 30 mm/s stroke dipped to 79 % of its peak, was frozen for 50 ms, and the
@@ -813,8 +853,10 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
              * measured on the frozen position, so it never became true, and the release jumped ~15 mm. */
             bool falling = !prev || (uint32_t)g->strength * 16u <= (uint32_t)prev * 17u;   /* unknown (slot changed): hold as before */
             if (trusted && !moved && !paired && falling && (fp->flags & BP_TF_LIFT) && time_ms - state->start_ms[k] < fp->tap_window_ms &&
-                (uint32_t)g->strength * 100u < (uint32_t)state->peak_strength[k] * fp->lift_pct)
+                (uint32_t)g->strength * 100u < (uint32_t)state->peak_strength[k] * fp->lift_pct) {
                 trusted = false;   /* leaving: the centroid drifts while the strength falls */
+                early_hold = true;
+            }
         }
         {   /* lift tail of a stopped finger, see BP_TOUCH_LIFT_PCT */
             if (fresh) { state->recent_strength[k] = g->strength; state->lift_hold_ms[k] = 0; }
@@ -831,6 +873,16 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
                 state->lift_hold_ms[k] = time_ms ? time_ms : 1u; ++state->lift_holds; trusted = false;
             }
             if (trusted) state->recent_strength[k] = (uint16_t)(recent + ((int32_t)g->strength - (int32_t)recent) / 8);
+        }
+        if (early_hold && !state->lift_hold_ms[k] && state->isolated_since_release && lone_raw &&
+            eligible == 1u && !state->pair_seen[k] && !state->intent[k].confirmed &&
+            time_ms - state->start_ms[k] <= 72u &&
+            (fp->flags & (BP_TF_EURO | BP_TF_STRING)) == (BP_TF_EURO | BP_TF_STRING) &&
+            frozen_swipe(&state->lift_motion[k], state->start_ms[k], &frozen_dx, &frozen_dy)) {
+            frozen_slot = k;
+            trusted = raw_sliding = true;
+            state->lift_hold_ms[k] = 0;
+            state->recent_strength[k] = g->strength;
         }
         bool intent_seen = false, thawed_by_intent = false;
         if (!trusted && !state->weak_frames[k] && eligible == 1u && !state->pair_seen[k] &&
@@ -974,7 +1026,11 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
             !state->weak_frames[k] && f->finger[k].valid) {
             if (state->intent_streak[k] < 255u) state->intent_streak[k]++;
         } else state->intent_streak[k] = 0;
-        if (state->intent_streak[k] >= 2u && raw_proven[k] && !state->intent[k].confirmed) {
+        if (frozen_slot == k) {
+            state->intent[k].confirmed = true;
+            out->motion_intent_id = out->contacts[0].id;
+            set_motion_origin(out, params, frozen_dx, frozen_dy);
+        } else if (state->intent_streak[k] >= 2u && raw_proven[k] && !state->intent[k].confirmed) {
             state->intent[k].confirmed = true;
             out->motion_intent_id = out->contacts[0].id;
             /* Start here: frozen/landing displacement must not be repaid as
