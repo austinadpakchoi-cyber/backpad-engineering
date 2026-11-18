@@ -24,6 +24,14 @@ def require(condition, message):
     if not condition:
         raise RuntimeError(message)
 
+def check_release_tail_buttons(label, rows):
+    """A move, stop, and lift must produce neither a click nor a stuck button."""
+    for row in rows:
+        case = (f"{label} release tail (cadence={row['cadence']} ms, "
+                f"tail={row['tail_um']} um/{row['tail_ms']} ms)")
+        require(int(row["left"]) == 0, f"{case}: unexpected left-button press")
+        require(int(row["final_buttons"]) == 0, f"{case}: button still pressed after lift")
+
 def apply_diff(original, patch):
     """Apply our small, context-checked unified diffs without requiring git."""
     src = original.splitlines(True)
@@ -119,8 +127,13 @@ def main():
     for name, expected in metadata["sha256"].items():
         require(digest((sample/name).read_bytes()) == expected, "Sample changed: "+name)
     source = json.loads((ROOT/"SOURCE.json").read_text(encoding="utf-8"))
+    policy_file = "firmware/app/src/bp_touch_policy.c"
+    current_policy = (ROOT/policy_file).read_text(encoding="utf-8")
+    historical_policy = apply_diff(current_policy, (ROOT/"samples/variants/r2-bp_touch_policy.c.patch").read_text())
     for item in source["files"]:
-        require(digest((ROOT/item["file"]).read_bytes().replace(b"\r\n", b"\n")) == item["normalized_export_sha256"],
+        archived_bytes = (historical_policy.encode() if item["file"] == policy_file
+                          else (ROOT/item["file"]).read_bytes().replace(b"\r\n", b"\n"))
+        require(digest(archived_bytes) == item["normalized_export_sha256"],
                 "Source no longer matches SOURCE.json: "+item["file"])
     variants = json.loads((ROOT/"samples/variants/manifest.json").read_text())
     cc, env, msvc = compiler_environment(out)
@@ -131,11 +144,13 @@ def main():
                "synthetic_scope": "18 generated stopped-finger/pressure-tail cases, not real captures",
                "real_capture": {}, "release_tail": {}, "executables": {}}
     tail_rows = {}
-    for label in ("v15", "r1", "r2"):
+    r2_events = None
+    for label in ("v15", "r1", "r2", "current"):
         variant = out/label
         variant.mkdir()
         for rel in ("app/src/bp_touch_policy.c", "app/include/bp_touch_policy.h"):
-            text = (ROOT/"firmware"/rel).read_text(encoding="utf-8-sig")
+            text = (historical_policy if label != "current" and "firmware/" + rel == policy_file
+                    else (ROOT/"firmware"/rel).read_text(encoding="utf-8-sig"))
             if label in variants:
                 change = next(x for x in variants[label]["changes"] if x["file"] == rel)
                 if change["patch"]:
@@ -146,6 +161,11 @@ def main():
         args = [str(exe), *[str(sample/n) for n in ("capture.bin", "touch.bin", "filter.bin", "gesture.bin")]]
         run = subprocess.run(args, capture_output=True, text=True, env=env, check=True)
         events = [json.loads(line[7:]) for line in run.stderr.splitlines() if line.startswith("REPORT ")]
+        if label == "r2":
+            r2_events = events
+        elif label == "current":
+            require(events == r2_events, "Current HID reports differ from historical R2")
+            results["current_matches_r2_hid_events"] = len(events)
         start, end = metadata["motion_window_ms"]
         bstart, bend = metadata["button_window_ms"]
         motion = [e for e in events if start <= e["ms"] <= end and (e["dx"] or e["dy"])]
@@ -163,9 +183,11 @@ def main():
                              env=env, capture_output=True, text=True, check=True)
         rows = list(csv.DictReader(io.StringIO(run.stdout)))
         require(len(rows) == 18, "Unexpected synthetic case count")
+        check_release_tail_buttons(label, rows)
         tail_rows[label] = rows
         results["release_tail"][label] = rows
         results["executables"][label] = {"capture": str(exe.relative_to(out)), "tail": str(tail.relative_to(out))}
+    require(tail_rows["current"] == tail_rows["r2"], "Current synthetic tail metrics differ from R2")
     regressions = {}
     for label in ("r1", "r2"):
         n = 0
@@ -173,7 +195,6 @@ def main():
             require(all(baseline[k] == row[k] for k in ("cadence","tail_um","tail_ms")), "Case order changed")
             if float(row["hid_tail_counts"]) > float(baseline["hid_tail_counts"])+1.0:
                 n += 1
-            require(int(row["final_buttons"]) == 0, "Synthetic tail left button pressed")
         regressions[label] = n
     require(regressions["r1"] == 6, "Historical R1 counterexample did not reproduce")
     require(regressions["r2"] == 0, "R2 regressed >1 HID count in a stopped-finger case")

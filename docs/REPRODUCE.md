@@ -15,10 +15,12 @@ python tools/reproduce.py --out .build/replay
 工具实际执行以下步骤：
 
 1. 校验[SOURCE.json](../SOURCE.json)内按LF归一的导出源码摘要和样本原始字节摘要，避免Git换行转换造成假失败。
-2. 在输出目录应用[samples/variants](../samples/variants/manifest.json)的精确历史差异，按历史文件摘要核对v15/R1；R2直接取公开源码。只重建两份小策略文件，不复制完整工程。
-3. 使用现有C回放器与指针核心编译三版本，向同一真实输入送入同一配置。
-4. 比较目标片段的motion/pressed及最终按钮状态；再运行原有18项合成停止/压力尾迹检查，按v15基线检查R1/R2。
+2. 从当前策略应用 [R2 恢复补丁](../samples/variants/r2-bp_touch_policy.c.patch)，校验历史 R2 摘要，然后用[历史差异](../samples/variants/manifest.json)还原 v15/R1。只重建所需的策略文件。
+3. 独立编译当前实现与三个历史版本，给 C 回放器输入同一段采集与配置，逐条比较当前实现与 R2 的带时间戳 HID 报告。
+4. 各版本均运行 18 组停止/抬手测试，检查左键按下沿和最终键态，比较当前实现与 R2 的各项指标，并按 v15 基线追踪 R1/R2 的尾移。
 5. 写出实际结果JSON；代码不以预存报告代替执行。
+
+需要单独改变接触强度时，使用[可选的 CUDA 或 CPU 灵敏度扫描](TECHNICAL-SOLUTION.md#复现与资料)。
 
 ## 样本一：真实压力下降失败片段
 

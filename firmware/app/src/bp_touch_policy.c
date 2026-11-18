@@ -133,8 +133,15 @@ static void intent_observe(bp_touch_filter_state *state, unsigned k, int32_t x, 
         float dx = x * MM_X - m->p[first].x, dy = y * MM_Y - m->p[first].y;
         if (dx * dx + dy * dy >= 0.6f * 0.6f) window_ms = 60u;
     }
-    while (m->n && (ms - m->p[0].ms > window_ms || m->n >= BP_TOUCH_INTENT_POINTS)) {
-        --m->n; memmove(m->p, m->p + 1, m->n * sizeof(m->p[0]));
+    /* A shorter intent window can expire several points in the same frame. */
+    unsigned expired = 0;
+    while (expired < m->n && (ms - m->p[expired].ms > window_ms ||
+                               m->n - expired >= BP_TOUCH_INTENT_POINTS)) {
+        ++expired;
+    }
+    if (expired) {
+        m->n -= expired;
+        memmove(m->p, m->p + expired, m->n * sizeof(m->p[0]));
     }
     /* Recent movement is only a hint: a growing landing footprint is not a
      * deliberate short swipe. Require40ms of a settled area before using the

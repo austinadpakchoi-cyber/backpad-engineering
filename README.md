@@ -4,9 +4,10 @@
 
 这里展示 BackPad 的触控固件与可复现工程案例：同一段真实输入如何暴露运动中断，修复为何又带来抬手尾迹，以及怎样用反例收紧恢复条件。
 
-- **先看结果：** [关键问题与取舍](docs/ENGINEERING.md) · [运行回放](docs/REPRODUCE.md)
+- **参赛技术方案：** [实体硬件、固件与 NVIDIA CUDA 灵敏度实验](docs/TECHNICAL-SOLUTION.md)
+- **先看结果：** [逐组实验数据](validation/pressure-sweep-20261118.json) · [关键问题与取舍](docs/ENGINEERING.md) · [运行回放](docs/REPRODUCE.md)
 - **实现入口：** [触点策略](firmware/app/src/bp_touch_policy.c) · [手势与指针核心](firmware/app/vendor/v5/src/bp_pointer.c)
-- **当前版本：** IQS9151 / nRF52840 双板原型；v0.20.16 pressure-continuity **R2** 的精选源码导出。
+- **当前版本：** IQS9151 / nRF52840 双板原型。固件使用 R2 手势规则，批量清理过期轨迹点。回放工具另行还原历史 R2，逐条核对输出。
 - **阶段：** 原型与固件迭代。R2历史刷写/读回有记录；刷后快划、微调、抬手与双指体验终验尚未取得。
 
 2026年10月，BackPad获WTCC创客松第一名，个人参赛。获奖原型属于10月阶段；本仓库研究的R2为11月1日后续固件，奖项不代替其验收。

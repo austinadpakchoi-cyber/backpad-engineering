@@ -1,0 +1,414 @@
+{
+  "kind": "offline strength sensitivity on a single recorded stroke",
+  "runtime": {
+    "backend": "cuda",
+    "device": "NVIDIA GeForce RTX 4080 SUPER",
+    "torch": "2.6.0+cu124",
+    "torch_cuda": "12.4",
+    "scalar_comparison_values": 49600
+  },
+  "native_compiler": "MSVC",
+  "algorithm": "current working-tree candidate, compiled from C; control compared with R2 fixture expectations",
+  "source_sha256": {
+    "firmware/app/src/bp_touch_policy.c": "d51313732d1004ebaec92097a662713a4bc207e9b48305ce2978680ad2bc184c",
+    "firmware/app/include/bp_touch_policy.h": "659ab1e931289357e9436ed3e6b9614a44a0265e4c7065697c292dbc13eb608b",
+    "firmware/app/vendor/v5/src/bp_pointer.c": "d174d1abbbc3fb9dad923e262f4182cf0f027841683b622af27641706143ad8c",
+    "tools/replay.c": "c9f97a9cc706b4767b968aab48b870f81cd43fa51dbad81296a1a52fa3a54fa7"
+  },
+  "input_capture_sha256": "475e93d27bbd2ea3ec0ef0b5c9f1834ca374875ea3e71f9b60ed2351a4107e0d",
+  "frames": 1600,
+  "perturbation": "Rectangular reduction of slot-0 strength only, starting at motion_window_ms[0], excluding the duration endpoint; integer round-half-up. Coordinates, area and timing are preserved.",
+  "motion_window_ms": [
+    7837,
+    8099
+  ],
+  "button_window_ms": [
+    7837,
+    8179
+  ],
+  "control": {
+    "identical_capture_and_all_hid_reports": true,
+    "report_count": 419,
+    "motion": 16,
+    "pressed_reports": 0,
+    "first_motion_ms_after_start": 101,
+    "final_buttons": 0
+  },
+  "synthetic_cases": 30,
+  "flag_criterion": "Zero motion in the motion window, any pressed report in the button window, or a nonzero final button state. One source capture does not establish device accuracy.",
+  "flagged_cases": [
+    [
+      30,
+      24
+    ],
+    [
+      30,
+      48
+    ],
+    [
+      30,
+      72
+    ],
+    [
+      30,
+      144
+    ],
+    [
+      30,
+      240
+    ],
+    [
+      50,
+      24
+    ],
+    [
+      50,
+      48
+    ],
+    [
+      50,
+      72
+    ],
+    [
+      50,
+      96
+    ],
+    [
+      50,
+      144
+    ],
+    [
+      50,
+      240
+    ],
+    [
+      70,
+      24
+    ],
+    [
+      70,
+      48
+    ],
+    [
+      70,
+      72
+    ],
+    [
+      70,
+      96
+    ],
+    [
+      70,
+      144
+    ],
+    [
+      70,
+      240
+    ],
+    [
+      90,
+      24
+    ],
+    [
+      90,
+      48
+    ],
+    [
+      90,
+      72
+    ],
+    [
+      90,
+      96
+    ],
+    [
+      90,
+      144
+    ],
+    [
+      90,
+      240
+    ]
+  ],
+  "cases": [
+    {
+      "reduction_percent": 0,
+      "duration_ms": 0,
+      "frames_changed": 0,
+      "motion": 16,
+      "pressed_reports": 0,
+      "first_motion_ms_after_start": 101,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 15,
+      "duration_ms": 24,
+      "frames_changed": 4,
+      "motion": 16,
+      "pressed_reports": 0,
+      "first_motion_ms_after_start": 101,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 15,
+      "duration_ms": 48,
+      "frames_changed": 8,
+      "motion": 16,
+      "pressed_reports": 0,
+      "first_motion_ms_after_start": 101,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 15,
+      "duration_ms": 72,
+      "frames_changed": 12,
+      "motion": 16,
+      "pressed_reports": 0,
+      "first_motion_ms_after_start": 101,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 15,
+      "duration_ms": 96,
+      "frames_changed": 16,
+      "motion": 16,
+      "pressed_reports": 0,
+      "first_motion_ms_after_start": 101,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 15,
+      "duration_ms": 144,
+      "frames_changed": 25,
+      "motion": 16,
+      "pressed_reports": 0,
+      "first_motion_ms_after_start": 101,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 15,
+      "duration_ms": 240,
+      "frames_changed": 41,
+      "motion": 16,
+      "pressed_reports": 0,
+      "first_motion_ms_after_start": 101,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 30,
+      "duration_ms": 24,
+      "frames_changed": 4,
+      "motion": 0,
+      "pressed_reports": 1,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 30,
+      "duration_ms": 48,
+      "frames_changed": 8,
+      "motion": 0,
+      "pressed_reports": 1,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 30,
+      "duration_ms": 72,
+      "frames_changed": 12,
+      "motion": 0,
+      "pressed_reports": 1,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 30,
+      "duration_ms": 96,
+      "frames_changed": 16,
+      "motion": 10,
+      "pressed_reports": 0,
+      "first_motion_ms_after_start": 119,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 30,
+      "duration_ms": 144,
+      "frames_changed": 25,
+      "motion": 0,
+      "pressed_reports": 1,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 30,
+      "duration_ms": 240,
+      "frames_changed": 41,
+      "motion": 0,
+      "pressed_reports": 1,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 50,
+      "duration_ms": 24,
+      "frames_changed": 4,
+      "motion": 0,
+      "pressed_reports": 1,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 50,
+      "duration_ms": 48,
+      "frames_changed": 8,
+      "motion": 0,
+      "pressed_reports": 1,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 50,
+      "duration_ms": 72,
+      "frames_changed": 12,
+      "motion": 0,
+      "pressed_reports": 1,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 50,
+      "duration_ms": 96,
+      "frames_changed": 16,
+      "motion": 0,
+      "pressed_reports": 1,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 50,
+      "duration_ms": 144,
+      "frames_changed": 25,
+      "motion": 0,
+      "pressed_reports": 1,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 50,
+      "duration_ms": 240,
+      "frames_changed": 41,
+      "motion": 0,
+      "pressed_reports": 0,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 70,
+      "duration_ms": 24,
+      "frames_changed": 4,
+      "motion": 0,
+      "pressed_reports": 1,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 70,
+      "duration_ms": 48,
+      "frames_changed": 8,
+      "motion": 0,
+      "pressed_reports": 1,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 70,
+      "duration_ms": 72,
+      "frames_changed": 12,
+      "motion": 0,
+      "pressed_reports": 1,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 70,
+      "duration_ms": 96,
+      "frames_changed": 16,
+      "motion": 0,
+      "pressed_reports": 1,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 70,
+      "duration_ms": 144,
+      "frames_changed": 25,
+      "motion": 0,
+      "pressed_reports": 1,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 70,
+      "duration_ms": 240,
+      "frames_changed": 41,
+      "motion": 0,
+      "pressed_reports": 0,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 90,
+      "duration_ms": 24,
+      "frames_changed": 4,
+      "motion": 0,
+      "pressed_reports": 1,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 90,
+      "duration_ms": 48,
+      "frames_changed": 8,
+      "motion": 0,
+      "pressed_reports": 1,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 90,
+      "duration_ms": 72,
+      "frames_changed": 12,
+      "motion": 0,
+      "pressed_reports": 1,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 90,
+      "duration_ms": 96,
+      "frames_changed": 16,
+      "motion": 0,
+      "pressed_reports": 1,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 90,
+      "duration_ms": 144,
+      "frames_changed": 25,
+      "motion": 0,
+      "pressed_reports": 1,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    },
+    {
+      "reduction_percent": 90,
+      "duration_ms": 240,
+      "frames_changed": 41,
+      "motion": 0,
+      "pressed_reports": 0,
+      "first_motion_ms_after_start": null,
+      "final_buttons": 0
+    }
+  ]
+}
