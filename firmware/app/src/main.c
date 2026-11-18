@@ -281,13 +281,10 @@ int main(void) {
     status.phase=2; publish_status(true); /* visible even if bt_enable blocks on HFXO */
     bp_channel_init(&channel,submit,NULL);
     bp_config config=bp_default_config(); config.scroll_enabled=true;
-    /* IQS9151 V2 touchpad, measured on the tuning page (board flat, FPC at the bottom-left): with
-     * rotation 0 a stroke to the right moved the cursor down and a stroke up moved it right, so the
-     * desk mounting is rotation 270. On the phone back, seen from the screen, the FPC is top-left:
-     * the same plus a Y mirror, selected at run time by backpad_iqs_params.orient bit0 (sensor X
-     * mirror, which rotation 270 turns into a screen Y mirror); since v0.20.8 it is the boot default
-     * (bp_sensor_service.c, BP_TOUCH_PARAMS_PRODUCTION). Chip flip/switch bits stay off. */
-    config.rotation=270u;
+    /* Four directions verified in the current landscape phone-back mount.
+     * Electrode geometry and the sensor-space orientation are applied upstream. */
+    config.rotation=0u;
+    config.invert_x=true;
     config.invert_y=false;
     config.two_finger_tap=true;
     config.hold_drag=BP_EXP_HOLD_DRAG;config.guarded_hold=BP_EXP_HOLD_DRAG;config.hold_ms=700u;config.release_debounce=BP_EXP_RELEASE_DEBOUNCE;config.scroll_acceleration=BP_EXP_SCROLL_ACCELERATION;

@@ -205,6 +205,15 @@ typedef struct {
 #define BP_LIFT_MOTION_POINTS 16u
 typedef struct { uint64_t ms; int32_t x, y; uint16_t strength; } bp_lift_motion_point;
 typedef struct { bp_lift_motion_point p[BP_LIFT_MOTION_POINTS]; unsigned n; } bp_lift_motion;
+/* A separate history for the one raw contact spanning a weak landing. */
+#define BP_LANDING_POINTS 12u
+typedef struct { uint64_t ms; uint16_t x, y, strength, area; } bp_landing_point;
+typedef struct {
+    bp_landing_point p[BP_LANDING_POINTS];
+    unsigned n, slot;
+    uint64_t first_weak_ms;
+    bool passed_entry, sustained_weak;
+} bp_landing_motion;
 typedef struct {
     uint64_t births[BP_IQS9151_MAX_FINGERS], next_birth;
     bool present[BP_IQS9151_MAX_FINGERS], admitted[BP_IQS9151_MAX_FINGERS];
@@ -232,6 +241,7 @@ typedef struct {
     uint64_t recent_motion_ms;
     bool resume_hint[BP_IQS9151_MAX_FINGERS];
     bp_lift_motion lift_motion[BP_IQS9151_MAX_FINGERS];
+    bp_landing_motion landing;
     uint8_t intent_streak[BP_IQS9151_MAX_FINGERS];
     uint16_t raw_x[BP_IQS9151_MAX_FINGERS], raw_y[BP_IQS9151_MAX_FINGERS];   /* last chip coordinates per slot */
     int16_t vel_x[BP_IQS9151_MAX_FINGERS], vel_y[BP_IQS9151_MAX_FINGERS];     /* last chip step per frame (v0.20: association predicts) */

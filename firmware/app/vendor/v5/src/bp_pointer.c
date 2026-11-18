@@ -1727,7 +1727,12 @@ bp_result bp_process(bp_pointer *p,const bp_sample *s,uint64_t now) {
     }
     if(!movement_allowed) {motion_rebase(p,x,y);return BP_OK;}
     if(s->time_ms-p->down_ms<(p->config.responsive_startup?BP_START_QUIET_MS:BP_LANDING_QUIET_MS) || p->landing_frames<BP_LANDING_FRESH_FRAMES) {
-        discard_motion(p);p->anchor_x=x;p->anchor_y=y;return BP_OK;
+        /* Certified tap catch-up may already have queued a bounded step.
+         * Keep that step through the quiet window while tracking its anchor. */
+        if(p->mode==BP_MOVING && p->landing_ready && p->guard.ready) {
+            p->guard.x=x;p->guard.y=y;p->guard.ms=s->time_ms;
+        } else discard_motion(p);
+        p->anchor_x=x;p->anchor_y=y;return BP_OK;
     }
     if(!p->landing_ready) {
         /* The first qualified post-landing observation defines the origin.

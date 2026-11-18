@@ -257,6 +257,66 @@ static bool lift_motion_observe(bp_touch_filter_state *state, unsigned k,
            bx * bx + by * by >= 0.25f * (ax * ax + ay * ay);
 }
 
+/* The normal gates and settling delay still decide contact ownership. An
+ * isolated raw contact may prove a swipe across that delay if its motion
+ * continues in the same direction. A declining signal alone cannot prove it. */
+static bool landing_motion_observe(bp_landing_motion *m, unsigned slot, bp_landing_point point,
+                                   bool new_contact, bool passes_gate, float *dx_out, float *dy_out) {
+    if (point.area < 2u) { m->n = 0; return false; }
+    if (m->n) {
+        const bp_landing_point *last = &m->p[m->n - 1u];
+        float dx = ((int32_t)point.x - last->x) * MM_X;
+        float dy = ((int32_t)point.y - last->y) * MM_Y;
+        if (slot != m->slot || point.ms <= last->ms || point.ms - last->ms > 15u ||
+            dx * dx + dy * dy > 1.8f * 1.8f) m->n = 0;
+    }
+    if (!m->n) {
+        m->slot = slot;
+        m->first_weak_ms = point.ms;
+        m->passed_entry = passes_gate || !new_contact;
+        m->sustained_weak = false;
+    }
+    if (!m->passed_entry && passes_gate) {
+        m->passed_entry = true;
+        m->sustained_weak = point.ms - m->first_weak_ms >= 22u;
+    }
+    if (m->n == BP_LANDING_POINTS) {
+        --m->n;
+        memmove(m->p, m->p + 1, m->n * sizeof(m->p[0]));
+    }
+    m->p[m->n++] = point;
+    if (!passes_gate || !m->sustained_weak || m->n < 6u) return false;
+    for (unsigned first = 0; first + 5u < m->n; ++first) {
+        const bp_landing_point *a = &m->p[first];
+        if (point.ms - a->ms < 30u || point.ms - a->ms > 60u) continue;
+        float dx = ((int32_t)point.x - a->x) * MM_X;
+        float dy = ((int32_t)point.y - a->y) * MM_Y;
+        float net2 = dx * dx + dy * dy;
+        if (net2 < 2.35f * 2.35f) continue;
+        const bp_landing_point *mid = &m->p[first + (m->n - 1u - first) / 2u];
+        float fa = ((int32_t)mid->x - a->x) * MM_X * dx + ((int32_t)mid->y - a->y) * MM_Y * dy;
+        if (fa < net2 * 0.20f || fa > net2 * 0.69f) continue;
+        float backtrack = 0.0f, path = 0.0f;
+        uint16_t peak = a->strength;
+        bool same_area = true;
+        for (unsigned i = first + 1u; i < m->n; ++i) {
+            const bp_landing_point *p = &m->p[i], *q = &m->p[i-1u];
+            float sx = ((int32_t)p->x - q->x) * MM_X, sy = ((int32_t)p->y - q->y) * MM_Y;
+            float advance = sx * dx + sy * dy;
+            if (advance < 0.0f) backtrack -= advance;
+            path += sqrtf(sx * sx + sy * sy);
+            same_area &= p->area == a->area;
+            if (p->strength > peak) peak = p->strength;
+        }
+        bool landing = a->area < point.area && backtrack <= net2 * 0.12f &&
+                       point.strength * 100u >= peak * 85u;
+        bool moving_light = same_area && net2 >= 0.90f * path * path &&
+                            point.strength * 100u >= peak * 45u;
+        if (landing || moving_light) { *dx_out = dx; *dy_out = dy; return true; }
+    }
+    return false;
+}
+
 /* One Euro filter step on one axis (mm, mm/s). */
 static float euro(float *x, float *dx, float raw, float dt, const bp_touch_filter_params *fp) {
     float v = (raw - *x) / dt;
@@ -505,12 +565,16 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
         f = &swapped;
     }
     bool raw_proven[BP_IQS9151_MAX_FINGERS] = {false};
+    bool landing_proven[BP_IQS9151_MAX_FINGERS] = {false};
+    float landing_dx = 0.0f, landing_dy = 0.0f;
     unsigned eligible = 0;   /* contacts that are or could be admitted this frame: intent is single-finger only */
     for (unsigned k = 0; k < BP_IQS9151_MAX_FINGERS; k++) {
         const bp_iqs9151_finger *g = &f->finger[k];
         if (g->valid && (state->admitted[k] || (g->area >= params->enter_area && g->area &&
             g->strength >= params->enter_strength && g->strength / g->area >= params->enter_density))) eligible++;
     }
+    bool lone_raw = f->fingers_reported == 1u;
+    if (!lone_raw) state->landing.n = 0;
     unsigned reported = 0;
     for (unsigned k = 0; k < BP_IQS9151_MAX_FINGERS; k++) {
         const bp_iqs9151_finger *g = &f->finger[k];
@@ -546,6 +610,11 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
         bool pass = held ? hold_quality(g, params)
                          : g->strength >= params->enter_strength && g->area >= params->enter_area &&
                            density >= params->enter_density;
+        bool watch_landing = lone_raw && (!held || (time_ms - state->start_ms[k] <= 130u &&
+                              !state->pair_seen[k] && !state->intent[k].confirmed)) &&
+                             (fp->flags & (BP_TF_EURO | BP_TF_STRING | BP_TF_SETTLE)) ==
+                             (BP_TF_EURO | BP_TF_STRING | BP_TF_SETTLE);
+        if (lone_raw && !watch_landing) state->landing.n = 0;
         /* v0.20.3 second-finger gate: next to an admitted, unweakened finger a real second finger shows density
          * ~170..530 (median ~360 over 20 min of ATI-250 use, 6 of 73 samples above 550): it may enter at
          * BP_TOUCH_SECOND_ENTER_DENSITY when 10..40 mm away with area >= 3 and >= 20 % of that finger's strength, for
@@ -558,6 +627,16 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
                 if (d2 >= BP_TOUCH_SECOND_MIN_COUNTS * BP_TOUCH_SECOND_MIN_COUNTS && d2 <= BP_TOUCH_SECOND_MAX_COUNTS * BP_TOUCH_SECOND_MAX_COUNTS &&
                     (uint32_t)g->strength * 100u >= (uint32_t)state->last_strength[j] * 20u) { pass = true; second = true; }
             }
+        }
+        int32_t raw_mx = 0, raw_my = 0;
+        if (watch_landing || held || pass) {
+            raw_mx = bp_touch_axis(g->x, x_res, geo ? geo->n_cols : 0, geo ? geo->orig_cols : 0, geo ? geo->col_phys : NULL);
+            raw_my = bp_touch_axis(g->y, y_res, geo ? geo->n_rows : 0, geo ? geo->orig_rows : 0, geo ? geo->row_phys : NULL);
+        }
+        if (watch_landing) {
+            landing_proven[k] = landing_motion_observe(&state->landing, k,
+                (bp_landing_point){time_ms, (uint16_t)raw_mx, (uint16_t)raw_my, g->strength, g->area},
+                !held, pass, &landing_dx, &landing_dy);
         }
         bool fresh = false;
         uint16_t prev = state->prev_strength[k];
@@ -632,10 +711,6 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
         if (g->strength > state->peak_strength[k]) state->peak_strength[k] = g->strength;
         state->last_strength[k] = g->strength;
         bool trusted = !state->weak_frames[k];
-        int32_t raw_mx = geo ? bp_touch_axis(g->x, x_res, geo->n_cols, geo->orig_cols, geo->col_phys)
-                             : bp_touch_axis(g->x, x_res, 0, 0, NULL);
-        int32_t raw_my = geo ? bp_touch_axis(g->y, y_res, geo->n_rows, geo->orig_rows, geo->row_phys)
-                             : bp_touch_axis(g->y, y_res, 0, 0, NULL);
         /* An admitted single finger moves down to the hold floor. Requiring
          * the entry floor here erased its evidence while its contact was
          * still valid. Paired lifetimes retain their existing scroll policy. */
@@ -643,6 +718,7 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
         unsigned motion_density = state->pair_seen[k] ? params->enter_density : params->exit_density;
         bool raw_sliding = lift_motion_observe(state, k, raw_mx, raw_my, g->strength, time_ms, fresh,
             trusted && eligible == 1u && g->strength >= motion_strength && density >= motion_density);
+        raw_sliding |= landing_proven[k];
         /* lift hold: within the tap window a falling strength means the finger is leaving and the centroid drifts;
          * hold the position. v0.20: only for a contact that has NOT moved yet (01:43 free slide: a finger that
          * re-landed straight into a 30 mm/s stroke dipped to 79 % of its peak, was frozen for 50 ms, and the
@@ -831,6 +907,15 @@ void bp_touch_convert(bp_touch_filter_state *state, const bp_touch_params *param
              * a sudden cursor jump. Subsequent deltas retain the same gain. */
             out->motion_origin_x = out->contacts[0].x;
             out->motion_origin_y = out->contacts[0].y;
+            if (landing_proven[k]) {
+                float scale = BP_TOUCH_REPAY_CAP_MM / sqrtf(landing_dx * landing_dx + landing_dy * landing_dy);
+                float dx = (params->orient & BP_TOUCH_FLIP_X) ? -landing_dx : landing_dx;
+                float dy = (params->orient & BP_TOUCH_FLIP_Y) ? -landing_dy : landing_dy;
+                int32_t ox = out->motion_origin_x - (int32_t)lroundf(dx * scale / MM_X);
+                int32_t oy = out->motion_origin_y - (int32_t)lroundf(dy * scale / MM_Y);
+                out->motion_origin_x = ox < 0 ? 0 : ox > BP_COORD_MAX ? BP_COORD_MAX : ox;
+                out->motion_origin_y = oy < 0 ? 0 : oy > BP_COORD_MAX ? BP_COORD_MAX : oy;
+            }
         } else if (state->intent_streak[k] >= 2u && state->intent[k].confirmed && state->intent[k].n) {
             const bp_touch_intent *m = &state->intent[k];
             out->motion_intent_id = out->contacts[0].id;
